@@ -1,0 +1,165 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[colorlinks=true, linkcolor=black,citecolor=black]{hyperref} % Links
+\usepackage{makeidx} % Indexierung
+\usepackage{siunitx}
+\usepackage[ngerman]{babel} % deutsche Sonderzeichen
+\usepackage[utf8]{inputenc}
+\usepackage{geometry} % Dokumentendesign wie Seiten- oder Zeilenabstand bestimmen
+\usepackage[toc,page]{appendix}
+
+% Graphiken
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{pgfcore}
+\usepackage{pgfopts}
+\usepackage{pgfornament}
+\usepackage{pgf}
+\usepackage{ifthen}
+\usepackage{booktabs}
+
+% Tabellen
+\usepackage{tabu}
+\usepackage{longtable}
+\usepackage{colortbl} % Tabellen faerben
+\usepackage{multirow}
+\usepackage{diagbox} % Tabellenzelle diagonal splitten
+
+\usepackage{xcolor} % Farben
+\usepackage[framemethod=tikz]{mdframed} % Hintergrunderstellung
+\usepackage{enumitem} % Enumerate mit Buchstaben nummerierbar machen
+\usepackage{pdfpages}
+\usepackage{listings} % Source-Code darstellen
+\usepackage{eurosym} % Eurosymbol
+\usepackage[square,numbers]{natbib}
+\usepackage{here} % figure an richtiger Stelle positionieren
+\usepackage{verbatim} % Blockkommentare mit \begin{comment}...\end{comment}
+\usepackage{ulem} % \sout{} (durchgestrichener Text)
+
+% BibLaTex
+\bibliographystyle{alpha}
+
+% Aendern des Anhangnamens (Seite und Inhaltsverzeichnis)
+\renewcommand\appendixtocname{Anhang}
+\renewcommand\appendixpagename{Anhang}
+
+% mdframed Style
+\mdfdefinestyle{codebox}{
+	linewidth=2.5pt,
+	linecolor=codebordercolor,
+	backgroundcolor=codecolor,
+	shadow=true,
+	shadowcolor=black!40!white,
+	fontcolor=black,
+	everyline=true,
+}
+
+% Seitenabstaende
+\geometry{left=15mm,right=15mm,top=10mm,bottom=20mm}
+
+% TikZ Bibliotheken
+\usetikzlibrary{
+    arrows,
+    arrows.meta,
+    decorations,
+    backgrounds,
+    positioning,
+    fit,
+    petri,
+    shadows,
+    datavisualization.formats.functions,
+    calc,
+    shapes,
+    shapes.multipart
+}
+
+\pgfplotsset{width=7cm,compat=1.15}
+
+\definecolor{codecolor}{HTML}{EEEEEE}
+\definecolor{codebordercolor}{HTML}{CCCCCC}
+
+% Standardeinstellungen fuer Source-Code
+\lstset{
+    language=C,
+    breaklines=true,
+    keepspaces=true,
+    keywordstyle=\bfseries\color{green!70!black},
+    basicstyle=\ttfamily\color{black},
+    commentstyle=\itshape\color{purple},
+    identifierstyle=\color{blue},
+    stringstyle=\color{orange},
+    showstringspaces=false,
+    rulecolor=\color{black},
+    tabsize=2,
+    escapeinside={\%*}{*\%},
+}
+
+%\input{libuml}
+%\input{liberm}
+
+\title{Clustering a binary labeled dataset for
+  partial classification and outlier detection (working title)}
+
+\author{Jonas Fa{\ss}bender}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Problem}
+
+Supervised learning is the task of approximating the
+unknown function $y = f(x)$ with $h(x)$ where $x$ generates
+$y$. Both $x$ and $y$ can be any object. If $y$ is from a
+finite set this learning problem is called classification.
+
+A classifier builds $h(x)$ based on a set $T$ containing
+$n$ example tuples:
+\begin{align*}
+T := \{(x_1, y_1), (x_2, y_2), \dots ,(x_n,y_n)\}
+\end{align*}
+referred to as the training set.\cite{ki}
+
+A classifier is trained to approximate $f(x)$ based on $T$,
+which makes the accuracy $a(h)$, $0 \leq a(h) \leq 1$ of
+$h(x)$ (how well $h(x)$ generalizes and predicts the
+corresponding $y$ to unseen $x$ from a test set similar to
+$T$) dependent on the quality of $T$.\cite{tc_data}
+
+For some data sets the data quality is not high
+enough to be able to find $h(x)$ with a sufficient
+accuracy $a(h)$. In this case sufficient means that $a(h)$
+is greater than or equal to a context dependent value $s$
+representing a threshold $s \leq a(h)$.
+
+I am trying to find a method that first clusters a data set
+with an insufficient $h(x)$ and afterwards builds a subset
+$P_s \subseteq P$ of these clusters or partitions $P$ of
+the data set so that for each partition in $P_s$ exists a
+classifier with a sufficient $h(x)$.
+
+\section{Next steps}
+
+To start this project I want to begin with a literature
+research focusing on the following topics:
+
+\begin{itemize}
+
+  \item common clustering methods, especially the k-means
+        algorithm
+
+  \item Nearest Neighbor algorithms, Voronoi Cells, LSH
+        (Local Sensitive Hashing)
+
+  \item Isolation Forrest and ensemble-based classification
+        methods
+
+  \item Randomized methods (Monte Carlo methods)
+
+\end{itemize}
+
+\bibliography{intro}
+
+\end{document}
