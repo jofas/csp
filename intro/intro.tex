@@ -98,8 +98,8 @@
 %\input{libuml}
 %\input{liberm}
 
-\title{Clustering a binary labeled dataset for
-  partial classification and outlier detection (working title)}
+\title{Partial classification of a binary labeled dataset
+  (working title)}
 
 \author{Jonas Fa{\ss}bender}
 \date{}
@@ -111,11 +111,11 @@
 \section{Problem}
 
 Supervised learning is the task of approximating the
-unknown function $y = f(x)$ with $h(x)$ where $x$ generates
+unknown function $y = f(x)$ where $x$ generates
 $y$. Both $x$ and $y$ can be any object. If $y$ is from a
 finite set this learning problem is called classification.
 
-A classifier builds $h(x)$ based on a set $T$ containing
+A classifier learns $h(x)$ based on a set $T$ containing
 $n$ example tuples:
 \begin{align*}
 T := \{(x_1, y_1), (x_2, y_2), \dots ,(x_n,y_n)\}
@@ -123,20 +123,21 @@ T := \{(x_1, y_1), (x_2, y_2), \dots ,(x_n,y_n)\}
 referred to as the training set.\cite{ki}
 
 A classifier is trained to approximate $f(x)$ with $h(x)$
-based on $T$, which makes the accuracy $a(h)$,
-$0 \leq a(h) \leq 1$ of $h(x)$ (how well $h(x)$ generalizes
+based on $T$, which makes the accuracy $a$,
+$0 \leq a \leq 1$ of $h(x)$ (how well $h(x)$ generalizes
 and predicts the corresponding $y$ to unseen $x$ from a
-test set similar to $T$) dependent on the quality of
+test set $T'$ similar to $T$) dependent on the quality of
 $T$.\cite{tc_data}
 
-For some data sets the data quality is not high
+For some datasets the data quality is not high
 enough to be able to find $h(x)$ with a sufficient
-accuracy $a(h)$. In this case sufficient means that $a(h)$
-is greater than or equal to a context dependent value $s$
-representing a threshold $s \leq a(h)$.
+accuracy $a(h(x))$. In this case sufficient means that
+$a(h(x))$ is greater than or equal to a context dependent
+value $s$ representing a threshold $s \leq a(h(x))$.
 
-I am trying to find a method that first clusters a data set
-with an insufficient $h(x)$ and afterwards builds a subset
+I am trying to find a method that first clusters a dataset
+with which I can only train classifiers that build
+insufficient $h(x)$ and afterwards finds a subset
 $P_s \subseteq P$ of these clusters or partitions $P$ of
 the data set so that for each partition in $P_s$ exists a
 classifier with a sufficient $h(x)$. My goal is to maximize
@@ -149,7 +150,7 @@ research focusing on the following topics:
 
 \begin{itemize}
 
-  \item common clustering methods, especially the k-means
+  \item Common clustering methods, especially the k-means
         algorithm
 
   \item Nearest Neighbor algorithms, Voronoi Cells, LSH
