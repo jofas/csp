@@ -5,63 +5,60 @@ import matplotlib.pyplot as plt
 from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
 
-class Point2d:
-    def __init__(self, x, y):
-        self.x, self.y = float(x), float(y)
-
-    def __repr__(self):
-        return "(%s, %s)" % (self.x, self.y)
-
 class Line2d:
     def __init__(self, p0, p1):
         self.p0, self.p1 = p0, p1
-        self.A = p0.y - p1.y
-        self.B = p1.x - p0.x
-        self.C = p0.x * p1.y - p1.x * p0.y
+
+        self.A = self.p1[1] - self.p0[1]
+        self.B = self.p0[0] - self.p1[0]
+        self.C = self.p0[0] * self.p1[1] \
+               - self.p1[0] * self.p0[1]
 
     def __repr__(self):
-        return "(%s) -- (%s)" % (self.p0, self.p1)
+        return "%s -- %s" % (self.p0, self.p1)
 
     def intersect(self, other):
         '''
-        #>>> l0 = Line2d(Point2d(0,0),Point2d(0,1))
-        #>>> l1 = Line2d(Point2d(1,0),Point2d(1,1))
-        #>>> l2 = Line2d(Point2d(-0.5,0), Point2d(0.5,1.5))
-        #>>> l0.intersect(l1)
-        #False
-        #>>> l0.intersect(l2)
-        #True
-        #>>> l1.intersect(l2)
-        #True
-        >>> l3 = Line2d(Point2d(3,3),Point2d(3,4))
-        >>> l4 = Line2d(Point2d(1,1),Point2d(2,1))
-        >>> l3.intersect(l4)
+        >>> l0 = Line2d((3,3),(3,4))
+        >>> l1 = Line2d((1,1),(2,1))
+        >>> l0.intersect(l1)
         False
+        >>> l2 = Line2d((-3,-3), (-3,-4))
+        >>> l3 = Line2d((-1,-1), (-2,-1))
+        >>> l2.intersect(l3)
+        False
+        >>> l4 = Line2d((0,0), (1,1))
+        >>> l5 = Line2d((0,1), (1,0))
+        >>> l4.intersect(l5)
+        True
         '''
-        dx_self, dx_other  = \
-            self.p0.x - self.p1.x, other.p0.x - other.p1.x
-        dy_self, dy_other  = \
-            self.p0.y - self.p1.y, other.p0.y - other.p1.y
-
-
-        D = self.A * other.B  - self.B * other.A
+        D  = self.A * other.B - self.B * other.A
         Dx = self.C * other.B - self.B * other.C
         Dy = self.A * other.C - self.C * other.A
-        if self.A * other.B - self.B * other.A == 0:
-            return False
-        else:
-            x = Dx / D
-            y = Dy / D
-            print(x)
-            print(y)
-            return True
+
+        if D != 0.0:
+            x = round(Dx / D, 6)
+            y = round(Dy / D, 6)
+
+            x_min = min(self.p0[0], self.p1[0])
+            x_max = max(self.p0[0], self.p1[0])
+            y_min = min(self.p0[1], self.p1[1])
+            y_max = max(self.p0[1], self.p1[1])
+
+            if x_min <= x and x <= x_max and \
+                    y_min <= y and y <= y_max:
+                return True
+        return False
 
 class Rectangle2d:
     def __init__(self, x_low, y_low, x_high, y_high):
-        p0 = Point2d(x_low,y_low)
-        p1 = Point2d(x_low,y_high)
-        p2 = Point2d(x_high,y_low)
-        p3 = Point2d(x_high,y_high)
+        x_low, y_low   = round(x_low, 6),  round(y_low, 6)
+        x_high, y_high = round(x_high, 6), round(y_high, 6)
+
+        self.low = p0 = (x_low,y_low)
+        p1 = (x_low,y_high)
+        p2 = (x_high,y_low)
+        self.high = p3 = (x_high,y_high)
 
         self.lines = [
             Line2d(p0,p1),
@@ -75,20 +72,42 @@ class Rectangle2d:
         #>>> r0 = Rectangle2d(0,0,1,1)
         #>>> r1 = Rectangle2d(2,2,3,3)
         #>>> r2 = Rectangle2d(1,1,2,2)
+        #>>> r3 = Rectangle2d(1.5, 1.5, 2.5, 2.5)
         #>>> r0.intersect(r1)
         #False
         #>>> r0.intersect(r2)
         #True
         #>>> r1.intersect(r2)
         #True
+        #>>> r1.intersect(r3)
+        #True
+        #>>> r2.intersect(r3)
+        #True
+        >>> r4 = Rectangle2d(0.64,0.56,0.99,0.68)
+        >>> r5 = Rectangle2d(0.56,0.62,0.75,0.92)
+        >>> r4.intersect(r5)
+        True
         '''
         for line0 in self.lines:
             for line1 in other.lines:
-                print(line0)
-                print(line1)
                 if line0.intersect(line1):
                     return True
         return False
+
+    def inside(self, point):
+        '''
+        >>> r = Rectangle2d(0,0,1,1)
+        >>> r.inside((0,0))
+        True
+        >>> r.inside((0.5,0.5))
+        True
+        >>> r.inside((2,2))
+        False
+        '''
+        return self.low[0] <= point[0]     and \
+               point[0]    <= self.high[0] and \
+               self.low[1] <= point[1]     and \
+               point[1]    <= self.high[1]
 
 # DEPRECATED
 def generate():
@@ -143,9 +162,8 @@ def svc(X, y):
     clf.fit(X_train,y_train)
     print(clf.score(X_test,y_test))
 
-def generate_uniform_2d(
-    lower, upper, size_out, size_ok, patches, patch_size,
-    seed = None
+def generate_normalized_uniform_2d(
+    size_out, size_ok, patches, acreage, seed = None
 ):
     rng = np.random.RandomState()
     if seed != None:
@@ -158,55 +176,32 @@ def generate_uniform_2d(
     y = []
 
     mem_patches = []
-
     for i in range(patches):
-        low_x  = None
-        low_y  = None
-        high_x = None
-        high_y = None
-
         # make sure patches do not overlap
+        new_patch  = None
         while True:
-            len_factor_x = random.random()
-            len_factor_y = 1.0 - len_factor_x
-
-            len_x = len_factor_x * patch_size
-            len_y = len_factor_y * patch_size
-
-            low_x = random.uniform(
-                lower, upper - len_x)
-            high_x = low_x + len_x
-
-            low_y = random.uniform(
-                lower, upper - len_y)
-            high_y = low_y + len_y
+            new_patch = rectangle(acreage)
 
             no_overlapping = True
-            for lx, ly, hx, hy in mem_patches:
-                if (
-                    lx < low_x and low_x < hx and
-                    ly < low_y and low_y < hy
-                ) or (
-                    lx < high_x and high_x < hx and
-                    ly < high_y and high_y < hy
-                ):
+            for patch in mem_patches:
+                if patch.intersect(new_patch):
                     no_overlapping = False
                     break
             if no_overlapping:
-                mem_patches.append((low_x,low_y,high_x,high_y))
+                mem_patches.append(new_patch)
                 break
 
         X = np.append(
             X,
             np.append(
                 rng.uniform(
-                    low=low_x,
-                    high=high_x,
+                    low  = new_patch.low[0],
+                    high = new_patch.high[0],
                     size=(points,1)
                 ),
                 rng.uniform(
-                    low=low_y,
-                    high=high_y,
+                    low  = new_patch.low[1],
+                    high = new_patch.high[1],
                     size=(points,1)
                 ),
                 axis = 1,
@@ -220,33 +215,44 @@ def generate_uniform_2d(
     counter = 0
     while counter < size_out:
         while True:
-            x = random.uniform(lower,upper)
-            z = random.uniform(lower,upper)
+            _0 = random.uniform(0,1)
+            _1 = random.uniform(0,1)
 
             not_in_clean_patch = True
-            for lx, ly, hx, hy in mem_patches:
-                if (
-                    lx < x and x < hx
-                ) and (
-                    ly < z and z < hy
-                ):
+            for patch in mem_patches:
+                if patch.inside((_0, _1)):
                     not_in_clean_patch = False
                     break
             if not_in_clean_patch:
-                X = np.append(X, [[x, z]], axis = 0)
+                X = np.append(X, [[_0, _1]], axis = 0)
                 y.append(float(random.randint(0,1)))
                 break
         counter += 1
 
     return X, y
 
+def rectangle(acreage):
 
+    len_factor_x = random.random()
+    len_factor_y = 1.0 - len_factor_x
 
+    len_x = len_factor_x * (acreage / 2)
+    len_y = len_factor_y * (acreage / 2)
+
+    x_low  = random.uniform(0, 1.0 - len_x)
+    x_high = x_low + len_x
+
+    y_low  = random.uniform(0, 1.0 - len_y)
+    y_high = y_low + len_y
+
+    return Rectangle2d(round(x_low,6), round(y_low,6), round(x_high,6), round(y_high,6))
+
+# TODO: abstractions, api (acreage, etc)
 
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-    #X, y = generate_uniform_2d(0,1,8000,200,10,0.1)
-    #scatter2d(X,y)
+    X, y = generate_normalized_uniform_2d(3000,1500,2,1)
+    scatter2d(X,y)
     #svc(X,y)
     #intersect()
