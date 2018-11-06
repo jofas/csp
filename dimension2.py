@@ -65,20 +65,20 @@ class Rectangle2d:
 
     def intersect(self, other):
         '''
-        #>>> r0 = Rectangle2d(0,0,1,1)
-        #>>> r1 = Rectangle2d(2,2,3,3)
-        #>>> r2 = Rectangle2d(1,1,2,2)
-        #>>> r3 = Rectangle2d(1.5, 1.5, 2.5, 2.5)
-        #>>> r0.intersect(r1)
-        #False
-        #>>> r0.intersect(r2)
-        #True
-        #>>> r1.intersect(r2)
-        #True
-        #>>> r1.intersect(r3)
-        #True
-        #>>> r2.intersect(r3)
-        #True
+        >>> r0 = Rectangle2d(0,0,1,1)
+        >>> r1 = Rectangle2d(2,2,3,3)
+        >>> r2 = Rectangle2d(1,1,2,2)
+        >>> r3 = Rectangle2d(1.5, 1.5, 2.5, 2.5)
+        >>> r0.intersect(r1)
+        False
+        >>> r0.intersect(r2)
+        True
+        >>> r1.intersect(r2)
+        True
+        >>> r1.intersect(r3)
+        True
+        >>> r2.intersect(r3)
+        True
         >>> r4 = Rectangle2d(0.64,0.56,0.99,0.68)
         >>> r5 = Rectangle2d(0.56,0.62,0.75,0.92)
         >>> r4.intersect(r5)
