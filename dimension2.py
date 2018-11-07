@@ -105,15 +105,19 @@ class Rectangle2d:
                self.low[1] <= point[1]     and \
                point[1]    <= self.high[1]
 
-def scatter2d(X,y):
+def scatter2d(X,y,path=None, size=(5.0,5.0)):
     X0 = np.array([X[i] for i in range(len(X)) \
         if y[i] == 0.0])
     X1 = np.array([X[i] for i in range(len(X)) \
         if y[i] == 1.0])
 
+    plt.figure(figsize=size)
     plt.scatter(X0[:,0], X0[:,1], c='red',s=1)
     plt.scatter(X1[:,0], X1[:,1], c='blue',s=1)
-    plt.show()
+    if path == None:
+        plt.show()
+    else:
+        plt.savefig(path)
 
 if __name__ == '__main__':
     import doctest

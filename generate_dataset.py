@@ -70,10 +70,16 @@ def append_points_outside_patches(X,y,patches,points,rng):
     return X, y
 
 def rectangle(acreage, rng):
-    len_factor = rng.uniform(0.45,0.65)
+    a = math.sqrt(acreage)
 
-    len_x = len_factor * math.sqrt(acreage)
-    len_y = acreage / len_x
+    len_x = None
+    len_y = None
+    if rng.randint(0,2) == 0:
+        len_y = rng.uniform(a,1)
+        len_x = acreage / len_y
+    else:
+        len_x = rng.uniform(a,1)
+        len_y = acreage / len_x
 
     x_low  = rng.uniform(0, 1.0 - len_x)
     x_high = x_low + len_x
@@ -105,5 +111,5 @@ def inside_clean_patch(patches, x, y):
     return False
 
 if __name__ == '__main__':
-    X, y = generate_normalized_uniform_2d(20000,0.20,5)
-    scatter2d(X,y)
+    X, y = generate_normalized_uniform_2d(20000,0.2,5,42)
+    scatter2d(X,y,'doc/log/fig/20000_20_5_42.pgf')

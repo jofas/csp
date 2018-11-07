@@ -4,7 +4,7 @@
 \usepackage[colorlinks=true, linkcolor=black,citecolor=black]{hyperref} % Links
 \usepackage{makeidx} % Indexierung
 \usepackage{siunitx}
-\usepackage[ngerman]{babel} % deutsche Sonderzeichen
+%\usepackage[ngerman]{babel} % deutsche Sonderzeichen
 \usepackage[utf8]{inputenc}
 \usepackage{geometry} % Dokumentendesign wie Seiten- oder Zeilenabstand bestimmen
 \usepackage[toc,page]{appendix}
@@ -36,6 +36,7 @@
 \usepackage{here} % figure an richtiger Stelle positionieren
 \usepackage{verbatim} % Blockkommentare mit \begin{comment}...\end{comment}
 \usepackage{ulem} % \sout{} (durchgestrichener Text)
+\usepackage{import}
 
 % BibLaTex
 \bibliographystyle{alpha}
@@ -74,7 +75,7 @@
     shapes.multipart
 }
 
-\pgfplotsset{width=7cm,compat=1.15}
+%\pgfplotsset{width=7cm,compat=1.15}
 
 \definecolor{codecolor}{HTML}{EEEEEE}
 \definecolor{codebordercolor}{HTML}{CCCCCC}
@@ -118,9 +119,53 @@
     algorithm.
 
   \item 1st of November 2018: \\ \\
-    Started working on a dataset generator that generates
-    a two dimensional dataset. TODO
+    Started working on a random dataset generator that
+    generates a two dimensional dataset containing
+    "'clean"' patches, meaning areas where data points all
+    belong to the same class.
+
+  \item 6th of November 2018: \\ \\
+    Finished the random dataset generator generating $D$.
+    The generator generates a two dimensional normalized
+    set of points (normalized meaning:
+    $\forall P(x,y) \in D: x, y \in [0,1)$). The points are
+    distributed uniformally, so every possible value on the
+    plane has the same chance of being selected.
+
+    The generator takes as input:
+      \begin{itemize}
+
+        \item The amount of points $D$ should contain
+              ($|D|$).
+
+        \item How much percent of the area should be
+              "'clean"'. The idea I have is that, while a
+              uniformally distributed dataset is impossible
+              to classify correctly since it is random, the
+              dataset the generator builds contains
+              "'patches"' or areas which are clean, meaning
+              every point inside one of these patches has
+              the same label. My goal is to find a
+              classifier that produces a $P_s$ so the area
+              $P_s$ covers comes as close to the percent of
+              clean points as possible.
+
+        \item The amount of patches. The clean points are
+              further separated in different patches, all
+              randomly set into the plane. $P_s$ should be
+              coextensive with all patches.
+
+        \item The seed for the random number generator, so
+              results can be compared.
+
+      \end{itemize}
 
 \end{itemize}
 
+\begin{figure}
+  \begin{center}
+    \import{./fig/}{dataset.pgf}
+  \end{center}
+  \caption{Dataset}
+\end{figure}
 \end{document}
