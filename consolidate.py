@@ -1,18 +1,69 @@
 import math
 import unittest
 
-from gmpy import popcount
+import numpy as np
 
-def connection_graph(d,h):
-    if h < d:
-        return connection_graph(h,h)
-    elif h == d:
-        g = Cube(d)
-        print(g)
-    if h > d:
-        gs = 2 ** (h - d)
-        return None
+#from gmpy import popcount
 
+class NeighborMatrix:
+    def __init__(self, d, h):
+        self.d = h if h < d else d
+        self.offset = h - d if h > d else 0
+        self.offset_matrix = self._offset_matrix()
+        self.amnt = 0b1 << (self.d - 1)
+        self.matrix = self._matrix()
+
+    def _offset_matrix(self):
+        m = np.array([[0]])
+        for r in range(1, self.offset + 1):
+            m_new = np.copy(m)
+
+            for row in np.nditer(
+                m_new, op_flags=['readwrite']
+            ):
+                row[...] = row + (0b1 << (r - 1))
+
+            if r % 2 == 0:
+                m = np.append(m, m_new, axis = 0)
+            else:
+                m = np.append(m, m_new, axis = 1)
+        return m
+
+    def _matrix(self):
+        m = np.zeros((
+            self.offset_matrix.shape[0] * 2,
+            self.offset_matrix.shape[1] * self.amnt ))
+
+        for i in range(self.offset_matrix.shape[0]):
+            for j in range(m.shape[1]):
+                offset = \
+                    self.offset_matrix[i, int(j/self.amnt)]
+
+                val = (j % self.amnt) ^ (offset << self.d)
+
+                m[i*2][j]   = val
+                m[i*2+1][j] = val ^ (0b1 << (self.d - 1))
+        return m
+
+def main():
+    from time import time
+
+    start = time()
+    for i in range(1,7):
+        print(i)
+        nm = NeighborMatrix(2,i)
+        print(nm.matrix)
+
+    print("TIME: %f" % (time() - start))
+
+
+if __name__ == '__main__':
+    #unittest.main()
+    main()
+
+
+
+# Cube {{{
 class Cube:
     def __init__(self, d):
         self.d = d
@@ -43,9 +94,7 @@ class Cube:
 
     def _complement(self,num):
         return ((0b1 << self.d) - 0b1) ^ num
-
-def main():
-    connection_graph(5,5)
+# }}}
 
 class TestCube(unittest.TestCase):
 
@@ -72,13 +121,6 @@ class TestCube(unittest.TestCase):
                 len(set(self.flatten(cube.layers))),
                 2 ** i
             )
-
-if __name__ == '__main__':
-    unittest.main()
-    main()
-
-
-
 
 class Node:
     def __init__(self, d, value = 0):
