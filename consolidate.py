@@ -3,32 +3,43 @@ import unittest
 
 import numpy as np
 
-#from gmpy import popcount
+from copy import deepcopy
+from gmpy import popcount
+
 
 class NeighborMatrix:
     def __init__(self, d, h):
-        self.d = h if h < d else d
-        self.offset = h - d if h > d else 0
+        self.d             = h if h < d else d
+        self.offset        = h - d if h > d else 0
+        #self.amnt          = 0b1 << (self.d - 1)
         self.offset_matrix = self._offset_matrix()
-        self.amnt = 0b1 << (self.d - 1)
-        self.matrix = self._matrix()
+        #self.matrix        = self._matrix()
+        self.group = self._group()
 
     def _offset_matrix(self):
-        m = np.array([[0]])
+        m = np.array([0], ndmin = self.d)
         for r in range(1, self.offset + 1):
             m_new = np.copy(m)
 
             for row in np.nditer(
-                m_new, op_flags=['readwrite']
+                m_new, op_flags = ['readwrite']
             ):
                 row[...] = row + (0b1 << (r - 1))
 
-            if r % 2 == 0:
-                m = np.append(m, m_new, axis = 0)
-            else:
-                m = np.append(m, m_new, axis = 1)
+            m = np.append(m, m_new, axis = r % self.d)
+
         return m
 
+    def _group(self):
+        m = np.array([0], ndmin = self.d)
+        for r in range(1, self.d + 1):
+            m_new = np.copy(m)
+
+        return m
+        #for r in range(1, 2 ** self.d):
+
+
+    ''' {{{
     def _matrix(self):
         m = np.zeros((
             self.offset_matrix.shape[0] * 2,
@@ -44,18 +55,99 @@ class NeighborMatrix:
                 m[i*2][j]   = val
                 m[i*2+1][j] = val ^ (0b1 << (self.d - 1))
         return m
+    }}} '''
+
+class DirectedCubeNode:
+    def __init__(self, id, n):
+        self.id        = id
+        self.n         = n
+        self.edges_in  = []
+        self.edges_out = []
+        self.edges = []
+
+    def connect(self, other):
+        if popcount(self.id ^ other.id) == 1:
+            self.edges.append(other)
+        else:
+            for edge in self.edges:
+                edge.connect(other)
+
+    def __repr__(self, h = 0):
+
+        return "DCN({})".format(self.id)
+
+        padding = "\n" + h * "   "
+        ret = padding + "{}".format(self.id)
+
+        for x in self.edges:
+            ret += "{} ".format(x.__repr__(h + 1))
+
+        return "{}: {}".format(self.id, self.edges)
+
+    def conns(self):
+        ret = "{}: [".format(self.id)
+        for node in self.edges_out:
+            ret += node.conns() + ", "
+        return ret[:-2] + "]" if len(self.edges_out) > 0 \
+            else ret[:-3]
+
+
+class Fold:
+    def __init__(self, n):
+        self.n = n
+        self.sides = [[] for _ in range(n)]
+        self.nodes = []
+
+        for i in range(2 ** n):
+
+            x = DirectedCubeNode(i,n)
+            for node in self.nodes:
+                if popcount(x.id ^ node.id) == 1:
+                    x.edges_in.append(node)
+                    node.edges_out.append(x)
+            self.nodes.append(x)
+
+            for j in range(n):
+                mask = 0b1 << (n - (j + 1))
+                if x.id & mask == mask:
+                    self.sides[j].append(x)
+
+    def conns(self):
+        return self.nodes[0].conns()
+
+    def copy_with_prefix(self, prefix):
+        new_cube = deepcopy(self)
+        for i in range(len(new_cube.nodes)):
+            new_cube.nodes[i].id = new_cube.nodes[i].id \
+                + (prefix << self.n)
+
+        return new_cube
 
 def main():
+    x = Fold(3)
+    y = x.copy_with_prefix(1)
+
+    print("x")
+    print("NODES: ", x.nodes)
+    print("SIDES: ", x.sides)
+    print("CONNS: ", x.conns())
+
+    print("y")
+    print("NODES: ", y.nodes)
+    print("SIDES: ", y.sides)
+    print("CONNS: ", y.conns())
+
+    '''
     from time import time
 
     start = time()
-    for i in range(1,7):
+    for i in range(1,8):
         print(i)
         nm = NeighborMatrix(2,i)
-        print(nm.matrix)
+        print(nm.offset_matrix)
 
     print("TIME: %f" % (time() - start))
-
+    '''
 
 if __name__ == '__main__':
     #unittest.main()
