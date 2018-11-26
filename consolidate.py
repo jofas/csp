@@ -63,14 +63,17 @@ class DirectedCubeNode:
         self.n         = n
         self.edges_in  = []
         self.edges_out = []
-        self.edges = []
+        #self.edges = []
 
+    '''
     def connect(self, other):
         if popcount(self.id ^ other.id) == 1:
             self.edges.append(other)
         else:
             for edge in self.edges:
                 edge.connect(other)
+    '''
+
 
     def __repr__(self, h = 0):
 
@@ -94,9 +97,12 @@ class DirectedCubeNode:
 
 class Fold:
     def __init__(self, n):
-        self.n = n
-        self.sides = [[] for _ in range(n)]
-        self.nodes = []
+        self.n        = n
+        self.sides     = [[] for _ in range(n)]
+        self.sides_    = [[] for _ in range(n)]
+        self.nodes     = []
+        self.rotation  = 0
+        self.direction = 1
 
         for i in range(2 ** n):
 
@@ -108,34 +114,94 @@ class Fold:
             self.nodes.append(x)
 
             for j in range(n):
-                mask = 0b1 << (n - (j + 1))
+                mask = 0b1 << j
                 if x.id & mask == mask:
                     self.sides[j].append(x)
+                else:
+                    self.sides_[j].append(x)
 
     def conns(self):
         return self.nodes[0].conns()
 
+    def _append(self, other):
+        # connect every node at self.rotation from self with
+        # the complement of the side at self.rotation of other
+        for i in range(len(self.sides[self.rotation])):
+            self.sides[self.rotation][i].edges_out.append(
+                other.sides_[self.rotation][i])
+            other.sides_[self.rotation][i].edges_in.append(
+                self.sides[self.rotation][i])
+
+        '''
+        side  = self.sides.pop(0)
+        side_ = other.sides_.pop(0)
+        for i in range(len(side)):
+            side[i].edges_out.append(side_[i])
+            side_[i].edges_in.append(side[i])
+
+        new_side  = other.sides.pop(0)
+        new_side_ = self.sides_.pop(0)
+
+        for i in range(len(self.sides)):
+            self.sides[i]  += other.sides[i]
+            self.sides_[i] += other.sides_[i]
+
+        self.sides.append(new_side)
+        self.sides_.append(new_side_)
+        '''
+        # add the nodes of other to the nodes of self
+        self.nodes += other.nodes
+
+        for i in range(self.n):
+            if i == self.rotation:
+                self.sides[i] = other.sides[i]
+            else:
+                self.sides[i] += other.sides[i]
+                self.sides_[i] += other.sides_[i]
+
+        self.rotation += self.direction
+
+        if self.rotation == self.n:
+            self.direction = -1
+            self.rotation += self.direction
+        elif self.rotation == -1:
+            self.direction = 1
+            self.rotation += self.direction
+
+        return self
+
+    '''
     def copy_with_prefix(self, prefix):
         new_cube = deepcopy(self)
         for i in range(len(new_cube.nodes)):
             new_cube.nodes[i].id = new_cube.nodes[i].id \
                 + (prefix << self.n)
-
         return new_cube
+    '''
 
 def main():
+    bits_offset = 1
+
     x = Fold(3)
-    y = x.copy_with_prefix(1)
 
-    print("x")
-    print("NODES: ", x.nodes)
+    for offset in range(bits_offset):
+        print("OFFSET: ", offset)
+        #print("NODES: ", x.nodes)
+        print("SIDES: ", x.sides, "\n")
+        #print("CONNS: ", x.conns(), "\n")
+
+        new_fold = deepcopy(x)
+        for i in range(len(new_fold.nodes)):
+            new_fold.nodes[i].id = new_fold.nodes[i].id \
+                + (0b1 << (offset + x.n))
+
+        x = x._append(new_fold)
+
+    print("FINAL")
+    #print("NODES: ", x.nodes)
     print("SIDES: ", x.sides)
-    print("CONNS: ", x.conns())
+    #print("CONNS: ", x.conns(), "\n")
 
-    print("y")
-    print("NODES: ", y.nodes)
-    print("SIDES: ", y.sides)
-    print("CONNS: ", y.conns())
 
     '''
     from time import time
