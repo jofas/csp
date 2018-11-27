@@ -1,255 +1,85 @@
-import random
-import unittest
-import math
 import numpy as np
-import matplotlib.pyplot as plt
 
-# TODO: think first about the structure
-#       a vector / plane interface (scipy/symbolic/knuth??)
-#       generic (k)
-#       scatter2d
-#       tests
-#       in rust + ffi ??
+class SymmetricKDTree:
+    def __init__(self, X, y, axis = 0, split = 0.5,
+            lor = None):
 
-def scatter2d(kdtree):
-    context = kdtree.context()
-    points  = np.array(context['leafs'])
-
-    plt.scatter(points[:,0],points[:,1])
-
-    ''' TODO
-    for index, split in enumerate(context['inner']):
-        if split == None:
-            continue
-        if index == 0:
-            plt.plot([(split,0),(split,3)])
-        else:
-            if int(math.log(index,2)) % 2 == 1:
-                plt.plot([(split,0),(split,3)])
-            else:
-                plt.plot([(0,split),(3,split)])
-    '''
-    plt.show()
-
-# Nil {{{
-class Nil:
-    def __init__(self, boundries = None):
-        self.boundries = boundries
-        self.axis = 1
-
-    def direction(self, _):
-        return 'right'
-
-    def vectors(self,vector_list):
-        return vector_list
-
-    '''
-    def vectors(self, axis, direction):
-        if direction == 'right':
-
-            pass
-        elif direction == 'left':
-            pass
-    '''
-
-    def get_split(self):
-        return self.boundries[-1][0]
-
-    def leafs(self):
-        return []
-
-    def __repr__(self):
-        return "NIL({})".format(self.boundries)
-
-    def __eq__(self,other):
-        if other == None:
-            return True
-        if type(other) is Nil:
-            return True
-        return False
-# }}}
-
-class Node:
-
-    nil = Nil()
-
-    def __init__(
-        self,k,points,axis,split,parent=None
-    ):
-        if parent == None:
-            self.parent = Node.nil
-        else:
-            self.parent = parent
-
-        self.split = next(split)
+        self.split = split
         self.axis  = axis
-        self.k = k
+        self.lor   = lor
 
-        l = []
-        r = []
-        for point in points:
-            if point[axis] <= self.split:
-                l.append(point)
+        if self.is_leaf(X, y):
+            self.X = X
+            self.y = y
+        else:
+            self.left, self.right = \
+                self.generate_childs(X, y)
+
+    def generate_childs(self, X, y):
+        lX, ly, rX, ry = [], [], [], []
+
+        for i in range(X.shape[0]):
+            if X[i][self.axis] <= self.split:
+                lX.append(X[i])
+                ly.append(y[i])
             else:
-                r.append(point)
+                rX.append(X[i])
+                ry.append(y[i])
 
-        self.left  = self._child(k,l,split)
-        self.right = self._child(k,r,split)
+        l_split, r_split = None, None
 
-    def __repr__(self):
-        return "NODE(%s, %s)" % (self.axis, self.split)
-
-    def get_split(self):
-        return self.split
-
-    def direction(self, child):
-        return 'left' if self.left == child \
-            else 'right'
-
-    def vectors(self, vector_list=[]):
-        direction = self.parent.direction(self)
-
-        ps = self.parent.get_split()
         if self.axis == 0:
-            self.a, self.b = (self.split, ps), (0,1)
+            l_split = r_split = self.split
+        elif self.lor == 'left':
+            l_split = r_split = self.split / 2
         else:
-            self.a, self.b = (ps, self.split), (1,0)
+            l_split = r_split = self.split / 2 + self.split
 
-        up = self
-        while up != Node.nil:
-            up = up.parent
-            if up.axis == self.axis:
-                continue
-            intersection = self.intersect(up)
-            print(intersection)
-            if (direction == 'left' and
-                    intersection[self.axis] < self.split) \
-            or (direction == 'right' and
-                    intersection[self.axis] >= self.split):
-                vector_list.append((self.a,intersection))
-                break
+        return SymmetricKDTree(
+                np.array(lX),
+                np.array(ly),
+                (self.axis + 1) % X.shape[1],
+                l_split,
+                'left'
+            ), SymmetricKDTree(
+                np.array(rX),
+                np.array(ry),
+                (self.axis + 1) % X.shape[1],
+                r_split,
+                'right'
+            )
 
-        print(vector_list)
-        vector_list = self.left.vectors(vector_list)
-        vector_list = self.right.vectors(vector_list)
-        return vector_list
+    def is_leaf(self, X, y):
+        return True if X.shape[0] <= 1 else False
 
-    def intersect(self, other):
-        alpha = None
-        if other == Node.nil:
-            a = other.boundries[(self.axis + 1) % self.k]
-            b = tuple([1 if i == self.axis else 0 for i in range(self.k)])
-            alpha = b[self.axis] - self.a[self.axis]
-        else:
-            alpha = other.b[self.axis] - self.a[self.axis]
-        return [self.a[i] + alpha * self.b[i] \
-            for i in range(len(self.a))]
+    def __repr__(self, h = 0):
+        padding = "\n" + str(self.axis) + " " + h * "  "
 
-    # _child {{{
-    def _child(self, k, points, split):
-        if len(points) > 1:
-            return Node(k, points,(self.axis + 1) % k,
-                split, self)
-        elif len(points) == 1:
-            return LeafNode(points[0])
-        else:
-            return Node.nil
-    # }}}
+        if 'X' in self.__dict__:
+            return padding + str(self.X)
 
-    # splits {{{
-    #
-    # breadth first
-    def splits(self):
-        queue = [self]
-        splits = []
+        ret = padding + "{}".format(self.split)
 
-        while queue != []:
-            node = queue.pop(0)
-            if type(node) is Nil:
-                splits.append(None)
-            elif type(node) is Node:
-                splits.append(node.split)
-                queue.append(node.left)
-                queue.append(node.right)
-        return splits
-    # }}}
+        ret += self.left.__repr__(h+1)
+        ret += self.right.__repr__(h+1)
 
-    # leafs {{{
-    def leafs(self):
-        return self.left.leafs() + self.right.leafs()
-    # }}}
+        return ret
 
-# LeafNode {{{
-class LeafNode:
-    def __init__(self, point):
-        self.point = point
 
-    def __repr__(self):
-        return "LEAFNODE({})".format(self.point)
 
-    def vectors(self, vector_list):
-        return vector_list
+def main():
+    X = [[0.0, 0.0],
+         [0.0, 1.0],
+         [1.0, 0.0],
+         [1.0, 1.0]]
 
-    def leafs(self):
-        return [self.point]
-# }}}
+    y = [0.0, 0.0, 0.0, 1.0]
 
-# KDTree {{{
-class KDTree:
-    def __init__(self, k, points, split = random.random):
-        self.k = k
+    t = SymmetricKDTree(np.array(X), np.array(y))
 
-        boundries = []
-        for i in range(k):
-            col = [x[i] for x in points]
-            boundries.append((min(col),max(col)))
+    print(t)
 
-        print(Node.nil)
-        Node.nil = Nil(boundries)
-        print(Node.nil)
-        self.tree = Node(
-            k, points, 0, split)
-
-    def context(self):
-        return {
-            "k":     self.k,
-            "inner": self.tree.splits(),
-            "leafs": self.tree.leafs(),
-        }
-# }}}
-
-class __TestKDTree(unittest.TestCase):
-
-    def test_1(self):
-        print('\n--- TEST 1 ---')
-        def split1():
-            split = [1, 1, 1]
-            for i in split:
-                yield 1
-
-        kd = KDTree(2, [(0,0),(2,0),(0,2),(2,2)], split1())
-
-        self.assertEqual(kd.tree.left.left.point, (0,0))
-        self.assertEqual(kd.tree.left.right.point, (0,2))
-        self.assertEqual(kd.tree.right.left.point, (2,0))
-        self.assertEqual(kd.tree.right.right.point, (2,2))
-
-        kd_context = kd.context()
-
-        self.assertEqual(kd_context['k'], 2)
-        self.assertEqual(kd_context['inner'], [1, 1, 1])
-        self.assertEqual(kd_context['leafs'],
-            [(0,0),(0,2),(2,0),(2,2)])
-
-        vectors = kd.tree.vectors()
-        print(vectors)
+    pass
 
 if __name__ == '__main__':
-    unittest.main()
-
-    def split():
-        split = [3, 3, 1, 1, 1]
-        for i in range(len(split)):
-            yield split[i]
-
-    scatter2d(KDTree(2,[(0,0),(2,0),(0,2),(2,2)],split()))
+    main()

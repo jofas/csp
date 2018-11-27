@@ -1,7 +1,7 @@
-import math
+#import math
 import unittest
 import sys
-import numpy as np
+#import numpy as np
 
 from copy import deepcopy
 from gmpy import popcount
@@ -11,7 +11,7 @@ class NeighborGraph:
         self.d      = h if h < d else d
         self.offset = h - d if h > d else 0
 
-        self.graph = Fold(self.d)
+        self.graph = _Fold(self.d)
 
         for o in range(self.offset):
             graph_ = None
@@ -27,12 +27,12 @@ class NeighborGraph:
                 graph_.nodes[i].id = graph_.nodes[i].id \
                     + (0b1 << (o + self.d))
 
-            self.graph = self.graph._append(graph_)
+            self.graph = self.graph.append(graph_)
 
     def conns(self):
         return self.graph.nodes[0].conns()
 
-class Fold:
+class _Fold:
     def __init__(self, n):
         self.n         = n
         self.sides     = [[] for _ in range(n)]
@@ -43,7 +43,7 @@ class Fold:
 
         for i in range(2 ** n):
 
-            x = DirectedNode(i)
+            x = _DirectedNode(i)
             for node in self.nodes:
                 if popcount(x.id ^ node.id) == 1:
                     node.edges_out.append(x)
@@ -56,7 +56,7 @@ class Fold:
                 else:
                     self.sides_[j].append(x)
 
-    def _append(self, other):
+    def append(self, other):
         for i in range(len(self.sides[self.rotation])):
             self.sides[self.rotation][i].edges_out.append(
                 other.sides_[self.rotation][i])
@@ -81,12 +81,12 @@ class Fold:
 
         return self
 
-class DirectedNode:
+class _DirectedNode:
     def __init__(self, id):
         self.id        = id
         self.edges_out = []
 
-    def __repr__(self, h = 0):
+    def __repr__(self):
         return "DCN({})".format(self.id)
 
     def conns(self, h = 0):
