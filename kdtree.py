@@ -127,8 +127,8 @@ def plot(clf, X, y):
     import matplotlib.pyplot as plt
     import pylab as pl
 
-    x_min = -0.02; x_max = 1.02
-    y_min = -0.02; y_max = 1.02
+    x_min, x_max = min(X[:,0]), max(X[:,0])
+    y_min, y_max = min(X[:,1]), max(X[:,1])
 
     # Plot the decision boundary. For that, we will assign a color to each
     # point in the mesh [x_min, m_max]x[y_min, y_max].
@@ -139,7 +139,7 @@ def plot(clf, X, y):
     # Put the result into a color plot
     Z = Z.reshape(xx.shape)
 
-    plt.pcolormesh(xx, yy, Z, cmap=pl.cm.binary,alpha=0.5)
+    plt.pcolormesh(xx, yy, Z, cmap=pl.cm.binary)#,alpha=0.5)
     '''
     # Plot also the test points
     grade_sig = [X_test[ii][0] for ii in range(0, len(X_test)) if y_test[ii]==0]
@@ -151,8 +151,8 @@ def plot(clf, X, y):
     l0 = np.array([X[i] for i in range(len(X)) if y[i] == 0.0])
     l1 = np.array([X[i] for i in range(len(X)) if y[i] == 1.0])
 
-    plt.scatter(l0[:,0], l0[:,1], color = "#D0D0D0")
-    plt.scatter(l1[:,0], l1[:,1], color = "#000000")
+    plt.scatter(l0[:,0], l0[:,1], color = "b", s=1)
+    plt.scatter(l1[:,0], l1[:,1], color = "r", s=1)
     plt.show()
 
 def main():
