@@ -2,6 +2,8 @@ import unittest
 import random
 import numpy as np
 
+from multiprocessing import Pool
+
 def accuracy(label_count, size):
     if size == 0:
         return -1, 0.0
@@ -9,28 +11,7 @@ def accuracy(label_count, size):
     label, max = label_count.max()
     return label, float(max) / float(size)
 
-class LabelCount:
-    def __init__(self):
-        self.count = {}
-
-    def __contains__(self, key):
-        return key in self.count
-
-    def add(self, label):
-        if label not in self.count:
-            self.count[label] = 0
-        self.count[label] += 1
-
-    def max(self):
-        label, max = None, -1
-        for k, v in self.items():
-            if v > max: label, max = k, v
-        return label, max
-
-    def items(self):
-        return self.count.items()
-
-class PartialClassifier:
+class PartialClassificationForrest:
     def __init__(
         self,
         n_estimators   = 5,
@@ -38,7 +19,7 @@ class PartialClassifier:
         max_height     = 64,
         gain           = 'accuracy',
         gain_threshold = 0.8,
-        splitter       = random.uniform,
+        splitter       = 'random',
     ):
         self.n_estimators   = n_estimators
         self.min_leaf_size  = min_leaf_size
@@ -47,11 +28,9 @@ class PartialClassifier:
             accuracy if gain == 'accuracy' else gain
         self.gain_threshold = gain_threshold
         self.splitter       = splitter
-        self.estimators     = \
-            [None for _ in range(n_estimators)]
+        self.estimators     = None
 
     def fit(self, X, y):
-
         boundries = np.array([(min(X[:,k]), max(X[:,k])) \
             for k in range(X.shape[1])])
 
@@ -62,15 +41,24 @@ class PartialClassifier:
         if -1.0 in label_count:
             raise Exception('-1.0 is an illegal label')
 
-        # TODO: add support for new fitting
-        for i in range(self.n_estimators):
-            self.estimators[i] = self._estimator(
-                X, y, boundries, label_count)
+        # TODO: - add support for new fitting
+        # - shared X and y
+        # - refactor _estimator
 
+        pool = Pool()
+        res  = [pool.apply_async(self._estimator,
+            (X, y, boundries, label_count)) \
+                for i in range(self.n_estimators)]
+        self.estimators = [r.get() for r in res]
+
+    # def _estimator {{{
     def _estimator(self, X, y, boundries, label_count):
 
         tree = Nil()
         stack = [(X, y, boundries, 0, label_count)]
+
+        splitter = random.Random().uniform \
+            if self.splitter == 'random' else self.splitter
 
         while True:
 
@@ -99,7 +87,7 @@ class PartialClassifier:
 
                 k = h % X.shape[1]
 
-                split = self.splitter(
+                split = splitter(
                     boundries[k,0], boundries[k,1])
 
                 tree.append(Node(split), boundries)
@@ -140,17 +128,18 @@ class PartialClassifier:
                     h + 1,
                     label_count_upper
                 ))
+    # }}}
 
     def predict(self, X):
-        ret = []
-        for x in X:
-            label_count = LabelCount()
-            for estimator in self.estimators:
-                label_count.add(estimator.predict(x))
-            label, _ = label_count.max()
-            ret.append(label)
+        return np.array(
+            [self._atomic_predict(x) for x in X])
 
-        return np.array(ret)
+    def _atomic_predict(self, x):
+        label_count = LabelCount()
+        for estimator in self.estimators:
+            label_count.add(estimator.predict(x))
+        label, _ = label_count.max()
+        return label
 
     def score(self, X, y):
         labels = self.predict(X)
@@ -166,9 +155,9 @@ class PartialClassifier:
 
         return {
             'known' : \
-                1.0-float(unknown)/float(X.shape[0]),
+                1.0 - float(unknown) / float(X.shape[0]),
             'acc'  : \
-                float(correct)/float(X.shape[0]-unknown),
+                float(correct) / float(X.shape[0]-unknown),
         }
 
     '''
@@ -210,17 +199,37 @@ class Nil:
         self.__class__ = NoL.__class__
         self.__dict__  = NoL.__dict__
 
-class __TestPartialClassifier(unittest.TestCase):
+class LabelCount:
+    def __init__(self):
+        self.count = {}
 
-    def splitter_middle(self, min, max):
-        return float(min + max) / 2.0
+    def __contains__(self, key):
+        return key in self.count
+
+    def add(self, label):
+        if label not in self.count:
+            self.count[label] = 0
+        self.count[label] += 1
+
+    def max(self):
+        label, max = None, -1
+        for k, v in self.items():
+            if v > max: label, max = k, v
+        return label, max
+
+    def items(self):
+        return self.count.items()
+
+def _splitter_middle(min, max):
+    return float(min + max) / 2.0
+
+class __TestPCF(unittest.TestCase):
 
     def test_tree_structure(self):
-
-        clf = PartialClassifier(
+        clf = PartialClassificationForrest(
             n_estimators  = 1,
             min_leaf_size = 1,
-            splitter      = self.splitter_middle
+            splitter      = _splitter_middle
         )
 
         X = np.array([[0.0, 0.0],
@@ -278,10 +287,10 @@ class __TestPartialClassifier(unittest.TestCase):
             t.right.left.right.right.label, 1.0)
 
     def test_max_height(self):
-        clf = PartialClassifier(
+        clf = PartialClassificationForrest(
             n_estimators  = 1,
             min_leaf_size = 1,
-            splitter      = self.splitter_middle,
+            splitter      = _splitter_middle,
             max_height    = 3
         )
 
@@ -302,10 +311,10 @@ class __TestPartialClassifier(unittest.TestCase):
         self.assertEqual(t.left.left.left.label, -1.0)
 
     def test_predict(self):
-        clf = PartialClassifier(
+        clf = PartialClassificationForrest(
             n_estimators   = 1,
             min_leaf_size  = 2,
-            splitter       = self.splitter_middle,
+            splitter       = _splitter_middle,
             gain_threshold = 0.99,
         )
 
@@ -336,10 +345,10 @@ class __TestPartialClassifier(unittest.TestCase):
         self.assertEqual(labels[3], 1.0)
 
     def test_score(self):
-        clf = PartialClassifier(
+        clf = PartialClassificationForrest(
             n_estimators   = 1,
             min_leaf_size  = 2,
-            splitter       = self.splitter_middle,
+            splitter       = _splitter_middle,
             gain_threshold = 0.99,
         )
 
@@ -375,7 +384,7 @@ class __TestPartialClassifier(unittest.TestCase):
         self.assertEqual(score['acc'], 0.5)
 
     def test_root_as_leaf(self):
-        clf = PartialClassifier(
+        clf = PartialClassificationForrest(
             n_estimators   = 1,
             min_leaf_size  = 1,
             gain_threshold = 0.99,
@@ -384,7 +393,6 @@ class __TestPartialClassifier(unittest.TestCase):
         X = np.array([[0.0,0.0]])
         y = np.array([0.0])
         clf.fit(X, y)
-        print(clf.estimators[0].__dict__)
         self.assertEqual(clf.estimators[0].label, 0.0)
 
 if __name__ == '__main__':
