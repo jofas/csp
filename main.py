@@ -38,13 +38,14 @@ def oy_main():
     from sklearn.decomposition import PCA
 
     X, y, _ = import_data('oy/data/clean.csv')
+    print(len(X))
     X, y = reduce_data(X, y, 0.1)
 
     clf = PCA(n_components = 4)
     X = clf.fit_transform(X)
 
-    #print(clf.explained_variance_ratio_)
-    #print(sum(clf.explained_variance_ratio_))
+    print(clf.explained_variance_ratio_)
+    print(sum(clf.explained_variance_ratio_))
 
     X, m = meta(X)
     X = standardize(X, m)
@@ -55,8 +56,8 @@ def oy_main():
     print('Fitting...')
     clf = PartialClassificationForest(
         n_estimators   = 20,
-        min_leaf_size  = 11,
-        gain_threshold = 0.98
+        min_leaf_size  = 7,
+        gain_threshold = 0.95
     )
 
     X_train, X_test, y_train, y_test = train_test_split(
