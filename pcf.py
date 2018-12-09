@@ -4,12 +4,11 @@ import numpy as np
 
 from multiprocessing import Pool
 
-def accuracy(label_count, size):
-    if size == 0:
-        return -1, 0.0
-
-    label, max = label_count.max()
-    return label, float(max) / float(size)
+# TODO: - add support for new fitting
+#       - test refitting
+#       - shared X and y
+#       - refactor _estimator
+#           * Stack worker class with callback ??
 
 class PartialClassificationForrest:
     def __init__(
@@ -24,15 +23,15 @@ class PartialClassificationForrest:
         self.n_estimators   = n_estimators
         self.min_leaf_size  = min_leaf_size
         self.max_height     = max_height
-        self.gain           = \
-            accuracy if gain == 'accuracy' else gain
         self.gain_threshold = gain_threshold
         self.splitter       = splitter
-        self.estimators     = None
+        self.estimators     = []
+        self.gain           = \
+            accuracy if gain == 'accuracy' else gain
 
+    # def fit {{{
     def fit(self, X, y):
-        boundries = np.array([(min(X[:,k]), max(X[:,k])) \
-            for k in range(X.shape[1])])
+        pool = Pool()
 
         label_count = LabelCount()
         for i in range(X.shape[0]):
@@ -41,27 +40,32 @@ class PartialClassificationForrest:
         if -1.0 in label_count:
             raise Exception('-1.0 is an illegal label')
 
-        # TODO: - add support for new fitting
-        # - shared X and y
-        # - refactor _estimator
+        if len(self.estimators) == 0:
+            # first fit
+            boundries = np.array([
+                (min(X[:,k]), max(X[:,k])) \
+                    for k in range(X.shape[1])])
 
-        pool = Pool()
-        res  = [pool.apply_async(self._estimator,
-            (X, y, boundries, label_count)) \
-                for i in range(self.n_estimators)]
-        self.estimators = [r.get() for r in res]
+            res = [pool.apply_async(self._estimator,
+                (X, y, boundries, label_count)) \
+                    for _ in range(self.n_estimators)]
+            self.estimators = [r.get() for r in res]
+        else:
+            # refit
+            res = [pool.apply_async(self._refit_estimator,
+                (self.estimators[i], X, y, label_count)) \
+                    for i in range(self.n_estimators)]
+            self.estimators = [r.get() for r in res]
+    # }}}
 
     # def _estimator {{{
     def _estimator(self, X, y, boundries, label_count):
-
-        tree = Nil()
-        stack = [(X, y, boundries, 0, label_count)]
-
+        tree     = _Nil()
+        stack    = [(X, y, boundries, 0, label_count)]
         splitter = random.Random().uniform \
             if self.splitter == 'random' else self.splitter
 
         while True:
-
             X, y, boundries, h, label_count = \
                 None, None, None, None, None
 
@@ -71,68 +75,78 @@ class PartialClassificationForrest:
             except:
                 return tree
 
-            label, gain_ = self.gain(
-                label_count, X.shape[0])
+            label, gain_ = self.gain(label_count,
+                X.shape[0])
 
             if self.min_leaf_size > X.shape[0] or \
                     h == self.max_height:
-
-                tree.append(Leaf(-1.0), boundries)
+                tree.append(_Leaf(-1.0, X, y, boundries,
+                    label_count), boundries)
 
             elif gain_ > self.gain_threshold:
-
-                tree.append(Leaf(label), boundries)
+                tree.append(_Leaf(label, X, y, boundries,
+                    label_count), boundries)
 
             else:
+                k    = h % X.shape[1]
+                node = _Node(splitter(boundries[k,0],
+                    boundries[k,1]))
 
+                tree.append(node, boundries)
+
+                boundries_low, boundries_up = \
+                    node.split_boundries(boundries, k)
+
+                X_low, X_up, y_low, y_up, \
+                label_count_low, label_count_up = \
+                    node.split_data(X, y, k)
+
+                stack.append((X_low, y_low, boundries_low,
+                    h + 1, label_count_low))
+                stack.append((X_up, y_up, boundries_up,
+                    h + 1, label_count_up))
+    # }}}
+
+    # def _refit_estimator {{{
+    def _refit_estimator(self,estimator,X, y, label_count):
+        stack = [(estimator, X, y, 0, label_count)]
+        splitter = random.Random().uniform \
+            if self.splitter == 'random' else self.splitter
+
+        while True:
+            node, X, y, h, label_count = \
+                None, None, None, None, None
+
+            try:
+                node, X, y, h, label_count = stack.pop()
+            except:
+                return estimator
+
+            if type(node) is _Leaf:
+                # change vars of node
+                node.update(X, y, label_count)
+                # check if label has changed to -1.0
+                # if so do some splitting (comparable to
+                # self._estimator
+                pass
+            else:
                 k = h % X.shape[1]
 
-                split = splitter(
-                    boundries[k,0], boundries[k,1])
+                X_low, X_up, y_low, y_up, \
+                label_count_low, label_count_up = \
+                    node.split_data(X, y, k)
 
-                tree.append(Node(split), boundries)
-
-                boundries_lower = np.copy(boundries)
-                boundries_upper = np.copy(boundries)
-
-                boundries_lower[k,1] = split
-                boundries_upper[k,0] = split
-
-                X_lower, y_lower = [], []
-                X_upper, y_upper = [], []
-
-                label_count_lower = LabelCount()
-                label_count_upper = LabelCount()
-
-                for i in range(X.shape[0]):
-                    if X[i,k] <= split:
-                        X_lower.append(X[i])
-                        y_lower.append(y[i])
-                        label_count_lower.add(y[i])
-                    else:
-                        X_upper.append(X[i])
-                        y_upper.append(y[i])
-                        label_count_upper.add(y[i])
-
-                stack.append((
-                    np.array(X_lower),
-                    np.array(y_lower),
-                    boundries_lower,
-                    h + 1,
-                    label_count_lower
-                ))
-                stack.append((
-                    np.array(X_upper),
-                    np.array(y_upper),
-                    boundries_upper,
-                    h + 1,
-                    label_count_upper
-                ))
+                if X_low.shape[0] > 0: stack.append((
+                    node.left, X_low, y_low, h + 1,
+                    label_count_low))
+                if X_up.shape[0] > 0: stack.append((
+                    node.right, X_up, y_up, h + 1,
+                    label_count_up))
     # }}}
 
     def predict(self, X):
-        return np.array(
-            [self._atomic_predict(x) for x in X])
+        return np.array([
+            self._atomic_predict(x) for x in X])
 
     def _atomic_predict(self, x):
         label_count = LabelCount()
@@ -156,23 +170,15 @@ class PartialClassificationForrest:
         return {
             'known' : \
                 1.0 - float(unknown) / float(X.shape[0]),
-            'acc'  : \
+            'acc'   : \
                 float(correct) / float(X.shape[0]-unknown),
         }
 
-    '''
-    def _V(self):
-        v = 1.0
-        for dim in self.meta:
-            v *= dim[1] - dim[0]
-        return v
-    '''
-
-class Node:
+class _Node:
     def __init__(self, split = None):
         self.split = split
-        self.left  = Nil()
-        self.right = Nil()
+        self.left  = _Nil()
+        self.right = _Nil()
 
     def append(self, NoL, boundries, __h = 0):
         if boundries[__h][0] < self.split:
@@ -187,14 +193,54 @@ class Node:
             return self.left.predict(x, (__h + 1) % len(x))
         return self.right.predict(x, (__h + 1) % len(x))
 
-class Leaf:
-    def __init__(self, label):
-        self.label = label
+    def split_data(self, X, y, k):
+        X_lower, y_lower = [], []
+        X_upper, y_upper = [], []
+
+        label_count_lower = LabelCount()
+        label_count_upper = LabelCount()
+
+        for i in range(X.shape[0]):
+            if X[i,k] <= self.split:
+                X_lower.append(X[i])
+                y_lower.append(y[i])
+                label_count_lower.add(y[i])
+            else:
+                X_upper.append(X[i])
+                y_upper.append(y[i])
+                label_count_upper.add(y[i])
+
+        return np.array(X_lower), np.array(X_upper), \
+               np.array(y_lower), np.array(y_upper), \
+               label_count_lower, label_count_upper
+
+
+    def split_boundries(self, boundries, k):
+        boundries_lower = np.copy(boundries)
+        boundries_upper = np.copy(boundries)
+
+        boundries_lower[k,1] = self.split
+        boundries_upper[k,0] = self.split
+
+        return boundries_lower, boundries_upper
+
+class _Leaf:
+    def __init__(self,label, X, y, boundries, label_count):
+        self.label       = label
+        self.X           = X
+        self.y           = y
+        self.boundries   = boundries
+        self.label_count = label_count
 
     def predict(self, _, __):
         return self.label
 
-class Nil:
+    def update(self, X, y, label_count):
+        self.X = np.append(self.X, X, axis = 0)
+        self.y = np.append(self.y, y, axis = 0)
+        self.label_count.append(label_count)
+
+class _Nil:
     def append(self, NoL, _, __ = None):
         self.__class__ = NoL.__class__
         self.__dict__  = NoL.__dict__
@@ -206,10 +252,12 @@ class LabelCount:
     def __contains__(self, key):
         return key in self.count
 
-    def add(self, label):
-        if label not in self.count:
-            self.count[label] = 0
-        self.count[label] += 1
+    def add(self, label, amnt = 1):
+        if label not in self.count: self.count[label] = 0
+        self.count[label] += amnt
+
+    def append(self, other):
+        for k, v in other.items(): self.add(k, v)
 
     def max(self):
         label, max = None, -1
@@ -219,6 +267,13 @@ class LabelCount:
 
     def items(self):
         return self.count.items()
+
+def accuracy(label_count, size):
+    if size == 0:
+        return -1, 0.0
+
+    label, max = label_count.max()
+    return label, float(max) / float(size)
 
 def _splitter_middle(min, max):
     return float(min + max) / 2.0
