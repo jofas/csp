@@ -6,11 +6,13 @@ from multiprocessing import Pool
 
 # TODO: - add support for new fitting
 #       - test refitting
-#       - shared X and y
+#       - shared X and y (not needed bc Linux uses Copy on
+#         write ??)
 #       - refactor _estimator
 #           * Stack worker class with callback ??
+#
 
-class PartialClassificationForrest:
+class PartialClassificationForest:
     def __init__(
         self,
         n_estimators   = 5,
@@ -41,7 +43,6 @@ class PartialClassificationForrest:
             raise Exception('-1.0 is an illegal label')
 
         if len(self.estimators) == 0:
-            # first fit
             boundries = np.array([
                 (min(X[:,k]), max(X[:,k])) \
                     for k in range(X.shape[1])])
@@ -51,7 +52,6 @@ class PartialClassificationForrest:
                     for _ in range(self.n_estimators)]
             self.estimators = [r.get() for r in res]
         else:
-            # refit
             res = [pool.apply_async(self._refit_estimator,
                 (self.estimators[i], X, y, label_count)) \
                     for i in range(self.n_estimators)]
@@ -77,6 +77,7 @@ class PartialClassificationForrest:
 
             label, gain_ = self.gain(label_count,
                 X.shape[0])
+
 
             if self.min_leaf_size > X.shape[0] or \
                     h == self.max_height:
@@ -123,12 +124,9 @@ class PartialClassificationForrest:
                 return estimator
 
             if type(node) is _Leaf:
-                # change vars of node
                 node.update(X, y, label_count)
-                # check if label has changed to -1.0
-                # if so do some splitting (comparable to
-                # self._estimator
-                pass
+                node = self._estimator(node.X, node.y,
+                    node.boundries, node.label_count)
             else:
                 k = h % X.shape[1]
 
@@ -181,7 +179,7 @@ class _Node:
         self.right = _Nil()
 
     def append(self, NoL, boundries, __h = 0):
-        if boundries[__h][0] < self.split:
+        if boundries[__h,0] < self.split:
             self.left.append(NoL, boundries,
                 (__h + 1) % len(boundries))
         else:
@@ -279,9 +277,8 @@ def _splitter_middle(min, max):
     return float(min + max) / 2.0
 
 class __TestPCF(unittest.TestCase):
-
     def test_tree_structure(self):
-        clf = PartialClassificationForrest(
+        clf = PartialClassificationForest(
             n_estimators  = 1,
             min_leaf_size = 1,
             splitter      = _splitter_middle
@@ -342,7 +339,7 @@ class __TestPCF(unittest.TestCase):
             t.right.left.right.right.label, 1.0)
 
     def test_max_height(self):
-        clf = PartialClassificationForrest(
+        clf = PartialClassificationForest(
             n_estimators  = 1,
             min_leaf_size = 1,
             splitter      = _splitter_middle,
@@ -366,7 +363,7 @@ class __TestPCF(unittest.TestCase):
         self.assertEqual(t.left.left.left.label, -1.0)
 
     def test_predict(self):
-        clf = PartialClassificationForrest(
+        clf = PartialClassificationForest(
             n_estimators   = 1,
             min_leaf_size  = 2,
             splitter       = _splitter_middle,
@@ -400,7 +397,7 @@ class __TestPCF(unittest.TestCase):
         self.assertEqual(labels[3], 1.0)
 
     def test_score(self):
-        clf = PartialClassificationForrest(
+        clf = PartialClassificationForest(
             n_estimators   = 1,
             min_leaf_size  = 2,
             splitter       = _splitter_middle,
@@ -439,16 +436,48 @@ class __TestPCF(unittest.TestCase):
         self.assertEqual(score['acc'], 0.5)
 
     def test_root_as_leaf(self):
-        clf = PartialClassificationForrest(
+        clf = PartialClassificationForest(
             n_estimators   = 1,
             min_leaf_size  = 1,
             gain_threshold = 0.99,
         )
 
-        X = np.array([[0.0,0.0]])
-        y = np.array([0.0])
+        X = np.array([[0.0, 0.0]])
+        y = np.array( [0.0] )
+
         clf.fit(X, y)
+
         self.assertEqual(clf.estimators[0].label, 0.0)
+
+    '''
+    def test_refitting_split(self):
+        clf = PartialClassificationForest(
+            n_estimators   = 1,
+            min_leaf_size  = 1,
+            splitter       = _splitter_middle,
+            gain_threshold = 0.99,
+        )
+
+        X = np.array([[0.0, 0.0]])
+        y = np.array( [0.0] )
+
+        clf.fit(X, y)
+        self.assertEqual(clf.estimators[0].X.shape,X.shape)
+
+        X = np.array([[1.0, 0.0]])
+        y = np.array( [1.0] )
+
+        clf.fit(X, y)
+
+        t = clf.estimators[0]
+
+        self.assertEqual(t.split, 0.5)
+        self.assertEqual(t.left.label, 0.0)
+        self.assertEqual(t.right.label, 1.0)
+
+    def test_refitting_wo_split(self):
+        pass
+    '''
 
 if __name__ == '__main__':
     unittest.main()

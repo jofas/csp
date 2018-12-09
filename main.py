@@ -4,7 +4,7 @@ from time import time
 
 from sklearn.model_selection import train_test_split
 
-from pcf import PartialClassificationForrest
+from pcf import PartialClassificationForest
 from kdtree import plot
 from generate_dataset import generate_normalized_uniform_2d
 
@@ -12,7 +12,7 @@ def main():
     X, y = generate_normalized_uniform_2d(20000,0.2,5, 42)
     X, y = np.array(X), np.array(y)
 
-    clf = PartialClassificationForrest(
+    clf = PartialClassificationForest(
         n_estimators   = 20,
         min_leaf_size  = 5,
         gain_threshold = 0.99
@@ -53,7 +53,7 @@ def oy_main():
     X, y = np.array(X), np.array(y)
 
     print('Fitting...')
-    clf = PartialClassificationForrest(
+    clf = PartialClassificationForest(
         n_estimators   = 20,
         min_leaf_size  = 11,
         gain_threshold = 0.98
