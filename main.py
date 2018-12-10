@@ -55,7 +55,7 @@ def oy_main():
 
     print('Fitting...')
     clf = PartialClassificationForest(
-        n_estimators   = 20,
+        n_estimators   = 15,
         min_leaf_size  = 7,
         gain_threshold = 0.95
     )
@@ -76,6 +76,8 @@ def oy_main():
     # validation
     score = clf.score(X_test, y_test)
     print(score)
+
+    #plot(clf, X, y)
 
 if __name__ == '__main__':
     oy_main()

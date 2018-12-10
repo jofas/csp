@@ -18,7 +18,7 @@ class PartialClassificationForest:
         self,
         n_estimators   = 5,
         min_leaf_size  = 2,
-        max_height     = 64,
+        max_height     = 32,
         gain           = 'accuracy',
         gain_threshold = 0.8,
         splitter       = 'random',
@@ -159,18 +159,6 @@ class PartialClassificationForest:
 
         return np.array([p.max()[0] for p in predictions])
 
-        '''
-        return np.array([
-            self._atomic_predict(x) for x in X])
-        '''
-
-    def _atomic_predict(self, x):
-        label_count = LabelCount()
-        for estimator in self.estimators:
-            label_count.add(estimator.predict(x))
-        label, _ = label_count.max()
-        return label
-
     def score(self, X, y):
         labels = self.predict(X)
 
@@ -205,10 +193,7 @@ class _Node:
                 (__h + 1) % len(boundries))
 
     def predict(self, X, __h = 0):
-        if X.shape[0] == 0:
-            return []
-
-        X_low , X_up = [], []
+        X_low ,      X_up       = [], []
         X_low_index, X_up_index = [], []
 
         for i in range(X.shape[0]):
@@ -219,23 +204,21 @@ class _Node:
                 X_up.append(X[i])
                 X_up_index.append(i)
 
-        labels_low = self.left.predict(np.array(X_low),
-            (__h + 1) % X.shape[1])
-        labels_up = self.right.predict(np.array(X_up),
-            (__h + 1) % X.shape[1])
-
         res = [0 for _ in X]
-        for i in range(len(labels_low)):
-            res[X_low_index[i]] = labels_low[i]
-        for i in range(len(labels_up)):
-            res[X_up_index[i]] = labels_up[i]
+        res = self.child_predict(res, self.left, X_low,
+            X_low_index, __h)
+        res = self.child_predict(res, self.right, X_up,
+            X_up_index, __h)
         return res
 
-        '''
-        if x[__h] <= self.split:
-            return self.left.predict(x, (__h + 1) % len(x))
-        return self.right.predict(x, (__h + 1) % len(x))
-        '''
+    def child_predict(self, res, child, X, X_index, __h):
+        if len(X) > 0:
+            X = np.array(X)
+            labels = child.predict(
+                X, (__h + 1) % X.shape[1])
+            for i in range(len(labels)):
+                res[X_index[i]] = labels[i]
+        return res
 
     def split_data(self, X, y, k):
         X_lower, y_lower = [], []
@@ -257,7 +240,6 @@ class _Node:
         return np.array(X_lower), np.array(X_upper), \
                np.array(y_lower), np.array(y_upper), \
                label_count_lower, label_count_upper
-
 
     def split_boundries(self, boundries, k):
         boundries_lower = np.copy(boundries)
