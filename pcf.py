@@ -182,13 +182,13 @@ class PartialClassificationForest:
                 unknown += 1
             elif y[i] == labels[i]:
                 correct += 1
-
-        return {
-            'known' : \
-                1.0 - float(unknown) / float(X.shape[0]),
-            'acc'   : \
-                float(correct) / float(X.shape[0]-unknown),
-        }
+        try:
+            return { 'known' : 1.0 - float(unknown) \
+                             / float(X.shape[0]),
+                     'acc'   : float(correct) \
+                             / float(X.shape[0]-unknown) }
+        except ZeroDivisionError:
+            return {'known' : 0.0, 'acc' : 0.0 }
 
 class _Node:
     def __init__(self, split = None):
