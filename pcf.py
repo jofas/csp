@@ -34,8 +34,6 @@ class PartialClassificationForest:
 
     # def fit {{{
     def fit(self, X, y):
-        pool = Pool()
-
         label_count = LabelCount()
         for i in range(X.shape[0]):
             label_count.add(y[i])
@@ -43,20 +41,23 @@ class PartialClassificationForest:
         if -1.0 in label_count:
             raise Exception('-1.0 is an illegal label')
 
-        if len(self.estimators) == 0:
-            boundries = np.array([
-                (min(X[:,k]), max(X[:,k])) \
-                    for k in range(X.shape[1])])
+        with Pool() as pool:
+            if len(self.estimators) == 0:
+                boundries = np.array([
+                    (min(X[:,k]), max(X[:,k])) \
+                        for k in range(X.shape[1])])
 
-            res = [pool.apply_async(self._estimator,
-                (X, y, boundries, label_count)) \
-                    for _ in range(self.n_estimators)]
-            self.estimators = [r.get() for r in res]
-        else:
-            res = [pool.apply_async(self._refit_estimator,
-                (self.estimators[i], X, y, label_count)) \
-                    for i in range(self.n_estimators)]
-            self.estimators = [r.get() for r in res]
+                res = [pool.apply_async(self._estimator,
+                    (X, y, boundries, label_count)) \
+                        for _ in range(self.n_estimators)]
+                self.estimators = [r.get() for r in res]
+            else:
+                res = [
+                    pool.apply_async(self._refit_estimator,
+                        (self.estimators[i], X, y,
+                            label_count)) for i in range(
+                                self.n_estimators)]
+                self.estimators = [r.get() for r in res]
     # }}}
 
     # def _estimator {{{
@@ -145,15 +146,23 @@ class PartialClassificationForest:
 
     def predict(self, X):
         predictions = [LabelCount() for x in X]
-        for e in self.estimators:
-            preds = e.predict(X)
-            for i in range(X.shape[0]):
-                predictions[i].add(preds[i])
+
+        with Pool() as pool:
+            res = [pool.apply_async(
+                self.estimators[i].predict, (X,)) \
+                    for i in range(self.n_estimators)]
+
+            for r in res:
+                preds = r.get()
+                for i in range(X.shape[0]):
+                    predictions[i].add(preds[i])
+
         return np.array([p.max()[0] for p in predictions])
 
-
+        '''
         return np.array([
             self._atomic_predict(x) for x in X])
+        '''
 
     def _atomic_predict(self, x):
         label_count = LabelCount()
@@ -196,6 +205,9 @@ class _Node:
                 (__h + 1) % len(boundries))
 
     def predict(self, X, __h = 0):
+        if X.shape[0] == 0:
+            return []
+
         X_low , X_up = [], []
         X_low_index, X_up_index = [], []
 
@@ -208,22 +220,22 @@ class _Node:
                 X_up_index.append(i)
 
         labels_low = self.left.predict(np.array(X_low),
-            (__h + 1) % X.shape[0])
+            (__h + 1) % X.shape[1])
         labels_up = self.right.predict(np.array(X_up),
-            (__h + 1) % X.shape[0])
+            (__h + 1) % X.shape[1])
 
         res = [0 for _ in X]
         for i in range(len(labels_low)):
             res[X_low_index[i]] = labels_low[i]
         for i in range(len(labels_up)):
             res[X_up_index[i]] = labels_up[i]
-
         return res
 
-
+        '''
         if x[__h] <= self.split:
             return self.left.predict(x, (__h + 1) % len(x))
         return self.right.predict(x, (__h + 1) % len(x))
+        '''
 
     def split_data(self, X, y, k):
         X_lower, y_lower = [], []

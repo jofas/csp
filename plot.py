@@ -1,7 +1,8 @@
-def plot(clf, X, y):
-    import matplotlib.pyplot as plt
-    import pylab as pl
+import numpy as np
+import matplotlib.pyplot as plt
+import pylab as pl
 
+def plot(clf, X, y):
     x_min, x_max = min(X[:,0]), max(X[:,0])
     y_min, y_max = min(X[:,1]), max(X[:,1])
 
