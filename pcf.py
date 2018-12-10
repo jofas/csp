@@ -6,6 +6,7 @@ from multiprocessing import Pool
 
 # TODO: - add support for new fitting
 #       - test refitting
+#       - make predict fast (pool + Node.predict all X's)
 #       - shared X and y (not needed bc Linux uses Copy on
 #         write ??)
 #       - refactor _estimator
@@ -143,6 +144,14 @@ class PartialClassificationForest:
     # }}}
 
     def predict(self, X):
+        predictions = [LabelCount() for x in X]
+        for e in self.estimators:
+            preds = e.predict(X)
+            for i in range(X.shape[0]):
+                predictions[i].add(preds[i])
+        return np.array([p.max()[0] for p in predictions])
+
+
         return np.array([
             self._atomic_predict(x) for x in X])
 
@@ -186,7 +195,32 @@ class _Node:
             self.right.append(NoL, boundries,
                 (__h + 1) % len(boundries))
 
-    def predict(self, x, __h = 0):
+    def predict(self, X, __h = 0):
+        X_low , X_up = [], []
+        X_low_index, X_up_index = [], []
+
+        for i in range(X.shape[0]):
+            if X[i,__h] <= self.split:
+                X_low.append(X[i])
+                X_low_index.append(i)
+            else:
+                X_up.append(X[i])
+                X_up_index.append(i)
+
+        labels_low = self.left.predict(np.array(X_low),
+            (__h + 1) % X.shape[0])
+        labels_up = self.right.predict(np.array(X_up),
+            (__h + 1) % X.shape[0])
+
+        res = [0 for _ in X]
+        for i in range(len(labels_low)):
+            res[X_low_index[i]] = labels_low[i]
+        for i in range(len(labels_up)):
+            res[X_up_index[i]] = labels_up[i]
+
+        return res
+
+
         if x[__h] <= self.split:
             return self.left.predict(x, (__h + 1) % len(x))
         return self.right.predict(x, (__h + 1) % len(x))
@@ -230,8 +264,8 @@ class _Leaf:
         self.boundries   = boundries
         self.label_count = label_count
 
-    def predict(self, _, __):
-        return self.label
+    def predict(self, X, _):
+        return [self.label for _ in X]
 
     def update(self, X, y, label_count):
         self.X = np.append(self.X, X, axis = 0)
@@ -272,6 +306,14 @@ def accuracy(label_count, size):
 
     label, max = label_count.max()
     return label, float(max) / float(size)
+
+
+###########################################################
+#                                                         #
+#                         TESTS                           #
+#                                                         #
+###########################################################
+
 
 def _splitter_middle(min, max):
     return float(min + max) / 2.0
@@ -386,10 +428,10 @@ class __TestPCF(unittest.TestCase):
 
         clf.fit(X, y)
 
-        labels = clf.predict([[0.3, 0.3],
-                              [0.3, 0.6],
-                              [0.6, 0.3],
-                              [0.6, 0.6]])
+        labels = clf.predict(np.array([[0.3, 0.3],
+                                       [0.3, 0.6],
+                                       [0.6, 0.3],
+                                       [0.6, 0.6]]))
 
         self.assertEqual(labels[0], 0.0)
         self.assertEqual(labels[1],-1.0)

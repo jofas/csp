@@ -5,7 +5,7 @@ from time import time
 from sklearn.model_selection import train_test_split
 
 from pcf import PartialClassificationForest
-from kdtree import plot
+from plot import plot
 from generate_dataset import generate_normalized_uniform_2d
 
 def main():
