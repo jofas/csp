@@ -41,6 +41,10 @@ class PartialClassificationForest:
         if -1.0 in label_count:
             raise Exception('-1.0 is an illegal label')
 
+        if X.shape[0] < self.min_leaf_size:
+            raise Exception('X must be greater or equal \
+                to self.min_leaf_size')
+
         with Pool() as pool:
             if len(self.estimators) == 0:
                 boundries = np.array([
@@ -80,16 +84,9 @@ class PartialClassificationForest:
             label, gain_ = self.gain(label_count,
                 X.shape[0])
 
-
-            if self.min_leaf_size > X.shape[0] or \
-                    h == self.max_height:
-                tree.append(_Leaf(-1.0, X, y, boundries,
-                    label_count), boundries)
-
-            elif gain_ > self.gain_threshold:
+            if gain_ > self.gain_threshold:
                 tree.append(_Leaf(label, X, y, boundries,
                     label_count), boundries)
-
             else:
                 k    = h % X.shape[1]
                 node = _Node(splitter(boundries[k,0],
@@ -104,10 +101,20 @@ class PartialClassificationForest:
                 label_count_low, label_count_up = \
                     node.split_data(X, y, k)
 
-                stack.append((X_low, y_low, boundries_low,
-                    h + 1, label_count_low))
-                stack.append((X_up, y_up, boundries_up,
-                    h + 1, label_count_up))
+                if self._tree_boundries(X_low, h + 1):
+                    stack.append((X_low, y_low,
+                        boundries_low, h + 1,
+                        label_count_low))
+                else:
+                    node.left = _Leaf(-1.0, X_low, y_low,
+                        boundries, label_count)
+
+                if self._tree_boundries(X_up, h + 1):
+                    stack.append((X_up, y_up, boundries_up,
+                        h + 1, label_count_up))
+                else:
+                    node.right = _Leaf(-1.0, X_up, y_up,
+                        boundries, label_count)
     # }}}
 
     # def _refit_estimator {{{
@@ -127,6 +134,8 @@ class PartialClassificationForest:
 
             if type(node) is _Leaf:
                 node.update(X, y, label_count)
+                # TODO: catch wether X is big enough or
+                #       h too big
                 node = self._estimator(node.X, node.y,
                     node.boundries, node.label_count)
             else:
@@ -143,6 +152,10 @@ class PartialClassificationForest:
                     node.right, X_up, y_up, h + 1,
                     label_count_up))
     # }}}
+
+    def _tree_boundries(self, X, h):
+        return X.shape[0] >= self.min_leaf_size and \
+            h < self.max_height
 
     def predict(self, X):
         predictions = [LabelCount() for x in X]
@@ -192,6 +205,7 @@ class _Node:
             self.right.append(NoL, boundries,
                 (__h + 1) % len(boundries))
 
+    # TODO: in own stack
     def predict(self, X, __h = 0):
         X_low ,      X_up       = [], []
         X_low_index, X_up_index = [], []
