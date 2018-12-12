@@ -2,7 +2,7 @@ import numpy as np
 
 from time import time
 
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, KFold
 
 from pcf import PartialClassificationForest
 from plot import plot
@@ -60,6 +60,8 @@ def oy_main():
         gain_threshold = 0.95
     )
 
+    '''
+    # train_test_split {{{
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size = 0.1)
 
@@ -76,6 +78,31 @@ def oy_main():
     # validation
     score = clf.score(X_test, y_test)
     print(score)
+    # }}}
+    '''
+
+    # KFold {{{
+    kf = KFold(n_splits = 5, shuffle = True)
+
+    for train_i, test_i in kf.split(X):
+
+        X_train, y_train = X[train_i], y[train_i]
+        X_test,  y_test  = X[test_i],  y[test_i]
+
+        start = time()
+        clf.fit(X_train, y_train)
+        print('Fitting time:', time() - start)
+
+        # how many % are predictable
+        start = time()
+        score = clf.score(X_train, y_train)
+        print('Predicting time:', time() - start)
+        print(score)
+
+        # validation
+        score = clf.score(X_test, y_test)
+        print(score)
+    # }}}
 
     #plot(clf, X, y)
 
