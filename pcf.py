@@ -6,14 +6,23 @@ from multiprocessing import Pool
 
 # TODO: - add support for new fitting
 #       - test refitting
-#       - make predict fast (pool + Node.predict all X's)
-#       - shared X and y (not needed bc Linux uses Copy on
-#         write ??)
+#       - remove all recursion (_Node.predict,
+#           _Node.append)
 #       - refactor _estimator
 #           * Stack worker class with callback ??
 #
 
+# Processpool. Global, since otherwise it would be copied
+# into the new processes which would lead to an
+# PickleError.
+_pool = None
+
+def get_boundries(X):
+    return np.array([(min(X[:,k]), max(X[:,k])) \
+        for k in range(X.shape[1])])
+
 class PartialClassificationForest:
+    # def __init__ {{{
     def __init__(
         self,
         n_estimators   = 5,
@@ -32,6 +41,10 @@ class PartialClassificationForest:
         self.gain           = \
             accuracy if gain == 'accuracy' else gain
 
+        global _pool
+        _pool = Pool()
+    # }}}
+
     # def fit {{{
     def fit(self, X, y):
         label_count = LabelCount()
@@ -45,29 +58,31 @@ class PartialClassificationForest:
             raise Exception('X must be greater or equal \
                 to self.min_leaf_size')
 
-        with Pool() as pool:
-            if len(self.estimators) == 0:
-                boundries = np.array([
-                    (min(X[:,k]), max(X[:,k])) \
-                        for k in range(X.shape[1])])
+        #with Pool() as pool:
+        if len(self.estimators) == 0:
 
-                res = [pool.apply_async(self._estimator,
-                    (X, y, boundries, label_count)) \
-                        for _ in range(self.n_estimators)]
-                self.estimators = [r.get() for r in res]
-            else:
-                res = [
-                    pool.apply_async(self._refit_estimator,
-                        (self.estimators[i], X, y,
-                            label_count)) for i in range(
-                                self.n_estimators)]
-                self.estimators = [r.get() for r in res]
+            boundries = get_boundries(X)
+            #np.array([
+            #    (min(X[:,k]), max(X[:,k])) \
+            #        for k in range(X.shape[1])])
+
+            res = [_pool.apply_async(self._estimator,
+                (X, y, boundries, 0, label_count)) \
+                    for _ in range(self.n_estimators)]
+            self.estimators = [r.get() for r in res]
+        else:
+            res = [
+                _pool.apply_async(self._refit_estimator,
+                    (self.estimators[i], X, y,
+                        label_count)) for i in range(
+                            self.n_estimators)]
+            self.estimators = [r.get() for r in res]
     # }}}
 
     # def _estimator {{{
-    def _estimator(self, X, y, boundries, label_count):
+    def _estimator(self, X, y, boundries, h, label_count):
         tree     = _Nil()
-        stack    = [(X, y, boundries, 0, label_count)]
+        stack    = [(X, y, boundries, h, label_count)]
         splitter = random.Random().uniform \
             if self.splitter == 'random' else self.splitter
 
@@ -84,6 +99,8 @@ class PartialClassificationForest:
             label, gain_ = self.gain(label_count,
                 X.shape[0])
 
+            # TODO: change append ?? possibly in stack,
+            #       too -> take out every recursion
             if gain_ > self.gain_threshold:
                 tree.append(_Leaf(label, X, y, boundries,
                     label_count), boundries)
@@ -134,10 +151,14 @@ class PartialClassificationForest:
 
             if type(node) is _Leaf:
                 node.update(X, y, label_count)
-                # TODO: catch wether X is big enough or
-                #       h too big
-                node = self._estimator(node.X, node.y,
-                    node.boundries, node.label_count)
+
+                if self._tree_boundries(node.X, h):
+                    new = self._estimator(node.X, node.y,
+                        node.boundries, h,
+                        node.label_count)
+
+                    node.__class__ = new.__class__
+                    node.__dict__  = new.__dict__
             else:
                 k = h % X.shape[1]
 
@@ -153,22 +174,25 @@ class PartialClassificationForest:
                     label_count_up))
     # }}}
 
+    # def _tree_boundries {{{
     def _tree_boundries(self, X, h):
         return X.shape[0] >= self.min_leaf_size and \
             h < self.max_height
+    # }}}
 
     def predict(self, X):
         predictions = [LabelCount() for x in X]
 
-        with Pool() as pool:
-            res = [pool.apply_async(
-                self.estimators[i].predict, (X,)) \
-                    for i in range(self.n_estimators)]
+        #with Pool() as pool:
 
-            for r in res:
-                preds = r.get()
-                for i in range(X.shape[0]):
-                    predictions[i].add(preds[i])
+        res = [_pool.apply_async(
+            self.estimators[i].predict, (X,)) \
+                for i in range(self.n_estimators)]
+
+        for r in res:
+            preds = r.get()
+            for i in range(X.shape[0]):
+                predictions[i].add(preds[i])
 
         return np.array([p.max()[0] for p in predictions])
 
@@ -279,6 +303,12 @@ class _Leaf:
         self.X = np.append(self.X, X, axis = 0)
         self.y = np.append(self.y, y, axis = 0)
         self.label_count.append(label_count)
+        X_boundries = get_boundries(X)
+        for i in range(self.boundries.shape[0]):
+            if X_boundries[i,0] < self.boundries[i,0]:
+                self.boundries[i,0] = X_boundries[i,0]
+            elif X_boundries[i,1] > self.boundries[i,1]:
+                self.boundries[i,1] = X_boundries[i,1]
 
 class _Nil:
     def append(self, NoL, _, __ = None):
@@ -499,7 +529,6 @@ class __TestPCF(unittest.TestCase):
 
         self.assertEqual(clf.estimators[0].label, 0.0)
 
-    '''
     def test_refitting_split(self):
         clf = PartialClassificationForest(
             n_estimators   = 1,
@@ -514,12 +543,16 @@ class __TestPCF(unittest.TestCase):
         clf.fit(X, y)
         self.assertEqual(clf.estimators[0].X.shape,X.shape)
 
-        X = np.array([[1.0, 0.0]])
+        X = np.array([[1.0, 1.0]])
         y = np.array( [1.0] )
+
+        t = clf.estimators[0]
+        self.assertEqual(type(t), _Leaf)
 
         clf.fit(X, y)
 
         t = clf.estimators[0]
+
 
         self.assertEqual(t.split, 0.5)
         self.assertEqual(t.left.label, 0.0)
@@ -527,7 +560,6 @@ class __TestPCF(unittest.TestCase):
 
     def test_refitting_wo_split(self):
         pass
-    '''
 
 if __name__ == '__main__':
     unittest.main()
