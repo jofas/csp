@@ -84,55 +84,53 @@ class PartialClassificationForest:
     # def _build_estimator {{{
     def _build_estimator(self, X, y, boundries, h,
             label_count):
-
         tree     = _Nil()
         splitter = random.Random().uniform \
             if self.splitter == 'random' else self.splitter
 
+        # def _build_estimator_callback {{{
+        def _build_estimator_callback(stack, next, X,
+                y, boundries, h, label_count):
+
+            label, gain_ = self.gain(label_count,
+                X.shape[0])
+
+            if gain_ > self.gain_threshold:
+                next.to(_Leaf(label, X, y, boundries,
+                    label_count))
+            else:
+                k    = h % X.shape[1]
+
+                next.to(_Node(splitter(boundries[k,0],
+                    boundries[k,1])))
+
+                boundries_low, boundries_up = \
+                    next.split_boundries(boundries, k)
+
+                X_low, X_up, y_low, y_up, \
+                label_count_low, label_count_up = \
+                    next.split_data(X, y, k)
+
+                if self._tree_boundries(X_low, h + 1):
+                    stack.append((next.left, X_low, y_low,
+                        boundries_low, h + 1,
+                        label_count_low))
+                else:
+                    next.left = _Leaf(-1.0, X_low, y_low,
+                        boundries, label_count)
+
+                if self._tree_boundries(X_up, h + 1):
+                    stack.append((next.right, X_up, y_up,
+                        boundries_up, h + 1,
+                        label_count_up))
+                else:
+                    next.right = _Leaf(-1.0, X_up, y_up,
+                        boundries, label_count)
+        # }}}
+
         return StackWorker(
-            tree, self._build_estimator_callback
-        ).work(tree, X, y, boundries, h, label_count,
-            splitter)
-    # }}}
-
-    # def _build_estimator_callback {{{
-    def _build_estimator_callback(self, stack, next, X, y,
-            boundries, h, label_count, splitter):
-
-        label, gain_ = self.gain(label_count,
-            X.shape[0])
-
-        if gain_ > self.gain_threshold:
-            next.to(_Leaf(label, X, y, boundries,
-                label_count))
-        else:
-            k    = h % X.shape[1]
-
-            next.to(_Node(splitter(boundries[k,0],
-                boundries[k,1])))
-
-            boundries_low, boundries_up = \
-                next.split_boundries(boundries, k)
-
-            X_low, X_up, y_low, y_up, \
-            label_count_low, label_count_up = \
-                next.split_data(X, y, k)
-
-            if self._tree_boundries(X_low, h + 1):
-                stack.append((next.left, X_low, y_low,
-                    boundries_low, h + 1,
-                    label_count_low, splitter))
-            else:
-                next.left = _Leaf(-1.0, X_low, y_low,
-                    boundries, label_count)
-
-            if self._tree_boundries(X_up, h + 1):
-                stack.append((next.right, X_up, y_up,
-                    boundries_up, h + 1,
-                    label_count_up, splitter))
-            else:
-                next.right = _Leaf(-1.0, X_up, y_up,
-                    boundries, label_count)
+            tree, _build_estimator_callback
+        ).work(tree, X, y, boundries, h, label_count)
     # }}}
 
     # def _refit_estimator {{{
@@ -140,38 +138,38 @@ class PartialClassificationForest:
         splitter = random.Random().uniform \
             if self.splitter == 'random' else self.splitter
 
+        # def _refit_estimator_callback {{{
+        def _refit_estimator_callback(stack, node, X, y, h,
+                label_count):
+
+            if type(node) is _Leaf:
+                node.update(X, y, label_count)
+
+                if self._tree_boundries(node.X, h):
+                    new = self._build_estimator(node.X,
+                        node.y, node.boundries, h,
+                        node.label_count)
+
+                    node.__class__ = new.__class__
+                    node.__dict__  = new.__dict__
+            else:
+                k = h % X.shape[1]
+
+                X_low, X_up, y_low, y_up, \
+                label_count_low, label_count_up = \
+                    node.split_data(X, y, k)
+
+                if X_low.shape[0] > 0: stack.append((
+                    node.left, X_low, y_low, h + 1,
+                    label_count_low))
+                if X_up.shape[0] > 0: stack.append((
+                    node.right, X_up, y_up, h + 1,
+                    label_count_up))
+        # }}}
+
         return StackWorker(
-            estimator, self._refit_estimator_callback
-        ).work(estimator, X, y, 0, label_count, splitter)
-    # }}}
-
-    # def _refit_estimator_callback {{{
-    def _refit_estimator_callback(self, stack, node, X, y,
-            h, label_count, splitter):
-
-        if type(node) is _Leaf:
-            node.update(X, y, label_count)
-
-            if self._tree_boundries(node.X, h):
-                new = self._build_estimator(node.X,
-                    node.y, node.boundries, h,
-                    node.label_count)
-
-                node.__class__ = new.__class__
-                node.__dict__  = new.__dict__
-        else:
-            k = h % X.shape[1]
-
-            X_low, X_up, y_low, y_up, \
-            label_count_low, label_count_up = \
-                node.split_data(X, y, k)
-
-            if X_low.shape[0] > 0: stack.append((
-                node.left, X_low, y_low, h + 1,
-                label_count_low, splitter))
-            if X_up.shape[0] > 0: stack.append((
-                node.right, X_up, y_up, h + 1,
-                label_count_up, splitter))
+            estimator, _refit_estimator_callback
+        ).work(estimator, X, y, 0, label_count)
     # }}}
 
     # def predict {{{
@@ -195,6 +193,7 @@ class PartialClassificationForest:
     def _single_estimator_predict(self, estimator, X):
         res = [None for _ in X]
 
+        # def _single_estimator_predict_callback {{{
         def _single_estimator_predict_callback(stack,
                 node, indices, h):
 
@@ -216,23 +215,11 @@ class PartialClassificationForest:
                 if len(indices_up) > 0:
                     stack.append((node.right, indices_up,
                         h + 1))
-
+        # }}}
 
         return StackWorker(
             res, _single_estimator_predict_callback
-        ).work(estimator, [i for i in range(X.shape[0])], 0)
-
-        stack = [(
-            estimator, [i for i in range(X.shape[0])], 0)]
-        res   = [0 for _ in X]
-        while True:
-            node, indices, h = None, None, None
-
-            try:
-                node, indices, h = stack.pop()
-            except:
-                return res
-
+        ).work(estimator, [i for i in range(X.shape[0])],0)
     # }}}
 
     # def score {{{
