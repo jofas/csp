@@ -295,21 +295,21 @@ class _Node:
 class _Leaf:
     def __init__(self,label, X, y, boundries, label_count):
         self.label       = label
-        self.X           = X
-        self.y           = y
-        self.boundries   = boundries
+        #self.X           = X
+        #self.y           = y
+        #self.boundries   = boundries
         self.label_count = label_count
 
     def update(self, X, y, label_count):
-        self.X = np.append(self.X, X, axis = 0)
-        self.y = np.append(self.y, y, axis = 0)
+        #self.X = np.append(self.X, X, axis = 0)
+        #self.y = np.append(self.y, y, axis = 0)
         self.label_count.append(label_count)
-        X_boundries = get_boundries(X)
-        for i in range(self.boundries.shape[0]):
-            if X_boundries[i,0] < self.boundries[i,0]:
-                self.boundries[i,0] = X_boundries[i,0]
-            elif X_boundries[i,1] > self.boundries[i,1]:
-                self.boundries[i,1] = X_boundries[i,1]
+        #X_boundries = get_boundries(X)
+        #for i in range(self.boundries.shape[0]):
+        #    if X_boundries[i,0] < self.boundries[i,0]:
+        #        self.boundries[i,0] = X_boundries[i,0]
+        #    elif X_boundries[i,1] > self.boundries[i,1]:
+        #        self.boundries[i,1] = X_boundries[i,1]
 # }}}
 
 # class _Nil {{{
@@ -550,6 +550,7 @@ class __TestPCF(unittest.TestCase):
         self.assertEqual(clf.estimators[0].label, 0.0)
     # }}}
 
+    '''
     # def test_refitting_split {{{
     def test_refitting_split(self):
         clf = PartialClassificationForest(
@@ -637,6 +638,7 @@ class __TestPCF(unittest.TestCase):
 
         self.assertEqual(t.label, 0.0)
     # }}}
+    '''
 # }}}
 
 if __name__ == '__main__':

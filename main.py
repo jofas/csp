@@ -71,8 +71,6 @@ def oy_main():
         gain_threshold = 0.95
     )
 
-    print(float(sys.getsizeof(clf)) / ( 2**20))
-
     # train_test_split {{{
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size = 0.1)
@@ -91,8 +89,6 @@ def oy_main():
     score = clf.score(X_test, y_test)
     print(score)
     # }}}
-
-    print(float(sys.getsizeof(clf)) / ( 2**20))
 
     '''
     # KFold {{{
@@ -122,5 +118,5 @@ def oy_main():
     #plot(clf, X, y)
 
 if __name__ == '__main__':
-    #oy_main()
-    main()
+    oy_main()
+    #main()
