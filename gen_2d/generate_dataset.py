@@ -1,7 +1,7 @@
 import math
 import numpy as np
 
-from dimension2 import Rectangle2d, scatter2d
+from .dimension2 import Rectangle2d, scatter2d
 
 def generate_normalized_uniform_2d(
     points, ratio_clean, patches = -1, seed = None

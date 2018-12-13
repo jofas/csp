@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 
 from time import time
@@ -6,29 +7,37 @@ from sklearn.model_selection import train_test_split, KFold
 
 from pcf import PartialClassificationForest
 from plot import plot
-from generate_dataset import generate_normalized_uniform_2d
+from gen_2d import generate_normalized_uniform_2d
 
 def main():
     X, y = generate_normalized_uniform_2d(20000,0.2,5, 42)
     X, y = np.array(X), np.array(y)
 
+    print("Fitting...")
     clf = PartialClassificationForest(
-        n_estimators   = 20,
+        n_estimators   = 15,
         min_leaf_size  = 5,
         gain_threshold = 0.99
     )
 
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y)
+        X, y, test_size = 0.1)
 
     start = time()
     clf.fit(X_train, y_train)
-    print('Fitting time: ', time() - start)
+    print('Fitting time:', time() - start)
 
+    # how many % are predictable
+    start = time()
+    score = clf.score(X_train, y_train)
+    print('Predicting time:', time() - start)
+    print(score)
+
+    # validation
     score = clf.score(X_test, y_test)
     print(score)
 
-    plot(clf, X, y)
+    #plot(clf, X, y)
 
 def oy_main():
     from oy.main import meta, standardize, reduce_data
@@ -53,14 +62,17 @@ def oy_main():
     y = [0.0 if x == -1.0 else 1.0 for x in y]
     X, y = np.array(X), np.array(y)
 
+    print(float(sys.getsizeof(X)) / ( 2**20))
+
     print('Fitting...')
     clf = PartialClassificationForest(
-        n_estimators   = 15,
+        n_estimators   = 5,
         min_leaf_size  = 7,
         gain_threshold = 0.95
     )
 
-    '''
+    print(float(sys.getsizeof(clf)) / ( 2**20))
+
     # train_test_split {{{
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size = 0.1)
@@ -79,8 +91,10 @@ def oy_main():
     score = clf.score(X_test, y_test)
     print(score)
     # }}}
-    '''
 
+    print(float(sys.getsizeof(clf)) / ( 2**20))
+
+    '''
     # KFold {{{
     kf = KFold(n_splits = 5, shuffle = True)
 
@@ -103,9 +117,10 @@ def oy_main():
         score = clf.score(X_test, y_test)
         print(score)
     # }}}
+    '''
 
     #plot(clf, X, y)
 
 if __name__ == '__main__':
-    oy_main()
-    #main()
+    #oy_main()
+    main()

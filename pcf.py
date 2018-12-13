@@ -4,14 +4,6 @@ import numpy as np
 
 from multiprocessing import Pool
 
-# TODO:
-#       - refitting: check once if new X messes with the
-#                    boundries instead of every Leaf
-#       - refactor _estimator
-#           * Stack worker class with callback ??
-#
-#       - all SW cbs back in their calling functions
-
 # Processpool. Global, since otherwise it would be copied
 # into the new processes which would lead to an
 # PickleError.
@@ -24,11 +16,9 @@ class StackWorker:
 
     def work(self, *args):
         stack = [args]
-        while True:
-            try:
-                self.callback(stack,*stack.pop())
-            except IndexError:
-                return self.res
+        while len(stack) > 0:
+            self.callback(stack,*stack.pop())
+        return self.res
 
 # class PartialClassificationForest {{{
 class PartialClassificationForest:
@@ -52,7 +42,7 @@ class PartialClassificationForest:
             accuracy if gain == 'accuracy' else gain
 
         global _pool
-        _pool = Pool()
+        _pool = Pool(maxtasksperchild=1)
     # }}}
 
     # def fit {{{
@@ -174,7 +164,7 @@ class PartialClassificationForest:
 
     # def predict {{{
     def predict(self, X):
-        predictions = [LabelCount() for x in X]
+        predictions = [LabelCount() for _ in X]
 
         res = [_pool.apply_async(
             self._single_estimator_predict, \
@@ -191,35 +181,48 @@ class PartialClassificationForest:
 
     # def _single_estimator_predict {{{
     def _single_estimator_predict(self, estimator, X):
-        res = [None for _ in X]
+        res = np.full((X.shape[0],), -1.0)
 
         # def _single_estimator_predict_callback {{{
         def _single_estimator_predict_callback(stack,
                 node, indices, h):
-
             if type(node) is _Leaf:
-                for i in indices:
-                    res[i] = node.label
+                if node.label != -1.0:
+                    res[indices] = node.label
             else:
+                k = h % X.shape[1]
+
                 indices_low, indices_up = [], []
 
                 for i in indices:
-                    if X[i,h] <= node.split:
+                    if X[i,h % X.shape[1]] <= node.split:
                         indices_low.append(i)
                     else:
                         indices_up.append(i)
 
+                del indices
+
                 if len(indices_low) > 0:
-                    stack.append((node.left, indices_low,
-                        h + 1))
+                    stack.append((
+                        node.left,
+                        np.array(indices_low),
+                        h + 1,
+                    ))
                 if len(indices_up) > 0:
-                    stack.append((node.right, indices_up,
-                        h + 1))
+                    stack.append((
+                        node.right,
+                        np.array(indices_up),
+                        h + 1
+                    ))
         # }}}
 
         return StackWorker(
             res, _single_estimator_predict_callback
-        ).work(estimator, [i for i in range(X.shape[0])],0)
+        ).work(
+            estimator,
+            np.array([i for i in range(X.shape[0])]),
+            0
+        )
     # }}}
 
     # def score {{{
