@@ -1,0 +1,40 @@
+\subsection{The PREDICT operation}
+
+The PREDICT operation traverses a Tree until it encounters
+a Leaf. If the Leaf is active a label to a provided
+observation $x$ is returned by the predictor
+property of the Leaf, otherwise $\Lambda$ is returned.
+
+$\Lambda$ must not be an element of the label set.
+
+\begin{algorithm}
+  \caption{: PREDICT($\Theta, x, h$)}%
+  \label{alg:pred}
+  Inputs:
+
+    \begin{tabu}{llX}
+    $\Theta$ &$-$ &a Tree node; initially pointing to the
+      root of the Tree,\\
+    $x$ &$-$ &an observation,\\
+    $h$ &$-$ &height of the Tree; initially $h = 0$
+    \end{tabu}
+
+  Output: the predicted label or $\Lambda$
+
+  \noindent\rule{\linewidth}{0.4pt}
+
+  \begin{algorithmic}[1]
+    \IF{TYPE($\Theta$) is Node}
+      \STATE dimension $\leftarrow h$ mod $|x|$
+      \IF{$x[dimension] \leq \Theta$.split}
+        \STATE PREDICT($\Theta$.left, $x$, $h + 1$)
+      \ELSE
+        \STATE PREDICT($\Theta$.right, $x$, $h + 1$)
+      \ENDIF
+    \ELSIF{$\Theta$.active}
+      \RETURN $\Theta$.predictor($x$)
+    \ELSE
+      \RETURN $\Lambda$
+    \ENDIF
+  \end{algorithmic}
+\end{algorithm}

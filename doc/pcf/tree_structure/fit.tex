@@ -1,0 +1,106 @@
+\subsection{The FIT operation}
+
+The FIT operation constructs a Tree, based on a dataset
+split in observations ($X$) and their labels ($y$).
+Algorithm~\ref{alg:fit} shows how FIT recursively builds a
+Tree, which is at the beginning a pointer to a Nil node.
+
+The most important parameter passed to FIT is $\gamma$.
+$\gamma$ is a function returning (\romannumeral 1) a
+predictor and (\romannumeral 2) the loss of it. Otherwise
+$\gamma$ is treated as a black box by the PCF, so what the
+predictor is and how its loss is calculated are not
+relevant to the PCF, as long as the predictor is callable
+and returns an element from the label set when called
+(Algorithm~\ref{alg:pred}, line 9). The loss returned
+by $\gamma$ gets compared to the quality threshold
+$\tau_l$. Is the loss $\leq \tau_l$ the predictor is good
+enough and $\Theta$ is transformed to an active Leaf
+(Algorithm~\ref{alg:fit}, lines 2, 3).
+
+There are two other thresholds besides $\tau_l$,
+$\tau_{|X|}$, $\tau_h$. Both regulate the behaviour of a
+Tree's growth. $\tau_{|X|}$ defines a minimum amount of
+observations a Leaf must contain. One can easily imagine,
+without $\tau_{|X|}$ or $\tau_{|X|} = 0$ a Tree would
+never stop growing, since FIT would continue to split empty
+partitions, trying to find a smaller partition which would
+be predictable, even though no predictor could be
+generated without observations to train it on.
+
+$\tau_h$ further regulates the maximum path length of a
+Tree. It is necessary besides $\tau_{|X|}$, because of the
+following scenario: be $\tau_{|X|} = 2$ and there are two
+equal observations in the dataset, but both having a
+different label than the other one. Now $\gamma$, passed
+$X$ containing only those two identical observations,
+returns a predictor with a loss $> \tau_l$. Since $|X|$ is
+still not smaller than $\tau_{|X|}$ FIT would continue
+trying to separate the two inseperable observations. To
+prevent such a szenario $\tau_h$ tells FIT to stop before
+the Tree's height, the amount of edges of the longest path,
+would exceed $\tau_h$. The path length of the Tree's root
+to $\Theta$ is passed as a parameter $h$ to FIT.
+
+Now, if neither $\tau_l$ is exceeded nor $\tau_{|X|}$ or
+$\tau_h$ is violated, FIT performs a split and transforms
+$\Theta$ to a Node (Algorithm~\ref{alg:fit}, lines 7ff).
+The dimension the split is performed on is chosen in a
+cyclic manner, a practise also applied to k-d trees.%
+~\cite{Brown2015kdtree}
+But rather than chosing the splitting value at the median
+of the observations in the dimension, which is done in
+order to construct balanced k-d trees, the splitting value
+is random.\cite{Brown2015kdtree}
+
+Afterwards FIT is recursively applied to the two new
+partitions (Algorithm~\ref{alg:fit}, lines 11, 12).
+
+\begin{algorithm}
+  \caption{: FIT($\Theta, X, y, h, \beta_X, \gamma,
+    \tau_{l}, \tau_{|X|}, \tau_{h}$)}%
+  \label{alg:fit}
+  Inputs:
+
+    \begin{tabu}{llX}
+    $\Theta$ &$-$ &a pointer to a Nil node; initially
+      pointing to the root node of an empty Tree,\\
+    $X$ &$-$ &input data,\\
+    $y$ &$-$ &labels of X,\\
+    $h$ &$-$ &height of the Tree; initially $h = 0$,\\
+    $\beta_X$ &$-$ &lower and upper boundries of every
+      dimension of X,\\
+    $\gamma$ &$-$ &function returning a predictor an its
+      quality,\\
+    $\tau_{l}$ &$-$ &quality threshold,\\
+    $\tau_{|X|}$ &$-$ &threshold for the size of X,\\
+    $\tau_{h}$ &$-$ &height limit of the Tree
+    \end{tabu}
+
+  Output: void
+
+  \noindent\rule{\linewidth}{0.4pt}
+
+  \begin{algorithmic}[1]
+    \STATE predictor, loss $\leftarrow \gamma(X, y)$
+    \IF{loss $\leq \tau_{l}$}
+      \STATE $\Theta \leftarrow$ LEAF(\TRUE, predictor,
+         $X$, $y$)
+    \ELSIF{$h > \tau_{h}$ \OR $|X| < \tau_{|X|}$ \OR
+        loss $> \tau_{l}$}
+      \STATE $\Theta \leftarrow$ LEAF(\FALSE, predictor,
+        $X$, $y$)
+    \ELSE
+      \STATE dimension $\leftarrow h$ mod $|X[0]|$
+      \STATE split $\leftarrow$ RANDOM($\beta_X[$dimension
+        $]$)
+      \STATE $\Theta \leftarrow$ NODE(split, NIL, NIL)
+      \STATE split $X$, $y$ and $\beta_X$ into
+        $X'$, $X''$, $y'$, $y''$, $\beta_X'$, $\beta_X''$
+      \STATE FIT($\Theta$.left, $X'$, $y'$, $h + 1$,
+        $\beta_X'$, \dots)
+      \STATE FIT($\Theta$.right, $X''$, $y''$, $h + 1$,
+        $\beta_X''$, \dots)
+    \ENDIF
+  \end{algorithmic}
+\end{algorithm}
