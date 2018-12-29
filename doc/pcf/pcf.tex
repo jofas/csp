@@ -1,6 +1,6 @@
 \documentclass[journal]{IEEEtran}
-\usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{amsmath}
 \usepackage[colorlinks=true, linkcolor=black]{hyperref} % Links
 \usepackage{makeidx} % Indexierung
 \usepackage{siunitx}
@@ -9,6 +9,8 @@
 \usepackage{geometry} % Dokumentendesign wie Seiten- oder Zeilenabstand bestimmen
 \usepackage{algorithm}
 \usepackage{algorithmic}
+\usepackage{caption}
+\usepackage{subcaption}
 %\usepackage[toc,page]{appendix}
 
 % Graphiken
@@ -77,7 +79,8 @@
     datavisualization.formats.functions,
     calc,
     shapes,
-    shapes.multipart
+    shapes.multipart,
+    matrix
 }
 % }}}
 
@@ -128,31 +131,6 @@
 \input{introduction}
 
 \input{tree_structure/doc}
-
-\begin{figure}
-  \begin{center}
-    \begin{tikzpicture}
-      \datavisualization[
-        scientific axes = clean,
-        x axis={label={$x_0$}},
-        y axis={label={$x_1$}},
-        visualize as smooth line=split,
-        visualize as scatter/.list={0,1},
-        0={label in legend={text=label 0},
-          style={mark=o, visualizer color=red}},
-        1={label in legend={text=label 1},
-          style={mark=o, visualizer color=blue}},
-      ]
-      data {
-        x,  y,  set
-        0,  0,  0
-        1,  1,  1
-        0,  0,  split
-        1,  1,  split
-      };
-    \end{tikzpicture}
-  \end{center}
-\end{figure}
 
 \bibliography{../csp}
 
