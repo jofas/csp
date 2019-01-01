@@ -46,15 +46,30 @@ Now, if neither $\tau_l$ is exceeded nor $\tau_{|X|}$ or
 $\tau_h$ is violated, FIT performs a split and transforms
 $\Theta$ to a Node (Algorithm~\ref{alg:fit}, lines 7ff).
 The dimension the split is performed on is chosen in a
-cyclic manner, a practise also applied to k-d trees.%
+cyclic manner, a practise also applied to k-d trees
+(Algorithm~\ref{alg:fit}, line 7).%
 ~\cite{Brown2015kdtree}
 But rather than chosing the splitting value at the median
 of the observations in the dimension, which is done in
 order to construct balanced k-d trees, the splitting value
 is random.\cite{Brown2015kdtree}
 
-Afterwards FIT is recursively applied to the two new
-partitions (Algorithm~\ref{alg:fit}, lines 11, 12).
+In order to chose a proper splitting value $\beta_X$ is
+passed as another parameter to FIT. $\beta_X$ represents
+the boundries for every dimension of the feature space
+based on $X$. For each dimension $\beta_X$ contains a
+tuple with the minimum and maximum value in the dimension
+of all observations in $X$.
+
+$\beta_X[\text{dimension}]$ is passed to a pseudo-random
+number generator generating a random value so that
+$lower(\beta_X[\text{dimension}]) \leq \text{random number}
+\leq upper(\beta_X[\text{dimension}])$
+(Algorithm~\ref{alg:fit}, line 8).
+
+Afterwards $X$, $y$, $\beta_X$ are splitted into two new
+disjoint partitions and FIT is recursively applied to the
+two new partitions (Algorithm~\ref{alg:fit}, lines 10ff).
 
 % {{{
 \begin{algorithm}
@@ -127,9 +142,9 @@ partitions (Algorithm~\ref{alg:fit}, lines 11, 12).
       returns a function returning the label with the
       maximum probability and as loss 1 - the maximum
       probability:
-      $\gamma(X,y) = f(z) := l \in
+      $\gamma(X,y) = f(z) \leftarrow l \in
       \text{label space where: }
-      max(P(label(x \in X))), 1 - P(l)$. The
+      l = max(P(label(x \in X))), 1 - P(l)$. The
       thresholds are: $\tau_l = 1$, $\tau_{|X|} = 2$.
       $\tau_h$ can be any integer above 2.
     }
