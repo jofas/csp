@@ -134,6 +134,99 @@
 
 \section{Partial Classification Forest}
 
+The PCF has two parameters, $N$ and an array with $N$
+pointers. $N$ is the amount of Trees the PCF maintains.
+Initially the pointers inside the array are references to
+Nil nodes.
+
+The PCF offers the same two operations a Tree has, FIT
+(Algorithm~\ref{alg:pcf_fit}) and PREDICT (Algorithm~%
+\ref{alg:pcf_pred}), both abstractions to the equivalent
+Tree operations.
+
+Once FIT is executed, the pointers are references to the
+root of fitted Tree instances.
+
+Both FIT and PREDICT can be implemented as multithreaded
+operations as long as $\gamma$ is threadsafe, since the
+Tree instances are independent of each other and the shared
+parameters $X$, $y$ (FIT) and $x$ (PREDICT) are read only,
+making synchronization unnecessary.
+
+FIT first computes $\beta_X$ which has a time complexity of
+$\mathcal{O}(|X[0]| * |X|)$, $|X[0]|$ denoting the amount
+of dimensions the feature space has.
+
+After that the Tree's FIT operation is called $N$ times,
+which means the PCF's FIT operation has a worst case time
+complexity of $\mathcal{O} (N * (2^{\tau_h + 1} - 1) *
+(|X| + \mathcal{O}(\gamma)) + |X[0]| * |X|)$
+(cmp.~\ref{subsec:fit}).
+
+TODO: describe PREDICT
+
+% {{{
+\begin{algorithm}
+  \caption{: FIT($\Pi, X, y, \gamma, \tau_{l},
+    \tau_{|X|}, \tau_{h}$)}%
+  \label{alg:pcf_fit}
+  The PCF's FIT operation.
+
+  Inputs:
+
+    \begin{tabu}{llX}
+    $\Pi$ &$-$ &a PCF instance,\\
+    $X$ &$-$ &input data,\\
+    $y$ &$-$ &labels of X,\\
+    $\gamma$ &$-$ &function returning a predictor and its
+      loss,\\
+    $\tau_{l}$ &$-$ &loss threshold,\\
+    $\tau_{|X|}$ &$-$ &threshold for the size of X,\\
+    $\tau_{h}$ &$-$ &height limit of the Tree
+    \end{tabu}
+
+  Output: void
+
+  \noindent\rule{\linewidth}{0.4pt}
+
+  \begin{algorithmic}[1]
+    \STATE compute $\beta_X$
+    \FORALL{$\Theta \in \Pi$.trees}
+      \STATE{FIT($\Theta$, $X$, $y$, 0, $\beta_X$, \dots)}
+    \ENDFOR
+  \end{algorithmic}
+\end{algorithm}
+% }}}
+
+% {{{
+\begin{algorithm}
+  \caption{: PREDICT($\Pi, x$)}
+  \label{alg:pcf_pred}
+  The PCF's PREDICT operation.
+
+  Inputs:
+
+    \begin{tabu}{llX}
+    $\Pi$ &$-$ &a PCF instance,\\
+    $x$ &$-$ &an observation, \\
+    \end{tabu}
+
+  Output: the predicted label or \Lambda
+
+  \noindent\rule{\linewidth}{0.4pt}
+
+  \begin{algorithmic}[1]
+    \STATE predictions $\leftarrow [\Lambda; N]$
+    \FOR{$i = 1$ \TO $N$}
+      \STATE{predictions$[i]$ = PREDICT($\Pi$.trees$[i]$,
+        $x$, $0$)}
+    \ENDFOR
+    \STATE determine $l_{max}$, the label predicted most
+    \RETURN $l_{max}$
+  \end{algorithmic}
+\end{algorithm}
+% }}}
+
 \bibliography{../csp}
 
 %!!! https://www.kaggle.com/zynicide/wine-reviews

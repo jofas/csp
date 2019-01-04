@@ -1,4 +1,5 @@
 \subsection{The FIT operation}
+\label{subsec:fit}
 
 The FIT operation constructs a Tree, based on a dataset
 split in observations ($X$) and their labels ($y$).
@@ -71,11 +72,26 @@ Afterwards $X$, $y$, $\beta_X$ are splitted into two new
 disjoint partitions and FIT is recursively applied to the
 two new partitions (Algorithm~\ref{alg:fit}, lines 10ff).
 
+Since $\tau_h$ is defined, the maximum amount of nodes a
+Tree can have is $2^{\tau_h + 1} - 1$, if the Tree would
+be perfectly balanced. For each node FIT is called, so
+building a Tree has a worst case time complexity of
+$\mathcal{O}((2^{\tau_h + 1} -1)*\mathcal{O}(\text{FIT}))$.
+$\mathcal{O}(\text{FIT})$ is determined by the size of $X$,
+since $X$ has to be splitted and by $\mathcal{O}(\gamma)$.
+That said, a single FIT operation would have a worst case
+time complexity of $\mathcal{O}(|X| + \mathcal{O}(\gamma))$
+, which would mean the time complexity of the whole fitting
+process would be $\mathcal{O}((2^{\tau_h + 1} - 1) *
+(|X| + \mathcal{O}(\gamma)))$.
+
 % {{{
 \begin{algorithm}
   \caption{: FIT($\Theta, X, y, h, \beta_X, \gamma,
     \tau_{l}, \tau_{|X|}, \tau_{h}$)}%
   \label{alg:fit}
+  A Tree's FIT operation.
+
   Inputs:
 
     \begin{tabu}{llX}
@@ -86,9 +102,9 @@ two new partitions (Algorithm~\ref{alg:fit}, lines 10ff).
     $h$ &$-$ &height of the Tree; initially $h = 0$,\\
     $\beta_X$ &$-$ &lower and upper boundries of every
       dimension of X,\\
-    $\gamma$ &$-$ &function returning a predictor an its
-      quality,\\
-    $\tau_{l}$ &$-$ &quality threshold,\\
+    $\gamma$ &$-$ &function returning a predictor and its
+      loss,\\
+    $\tau_{l}$ &$-$ &loss threshold,\\
     $\tau_{|X|}$ &$-$ &threshold for the size of X,\\
     $\tau_{h}$ &$-$ &height limit of the Tree
     \end{tabu}
@@ -120,7 +136,7 @@ two new partitions (Algorithm~\ref{alg:fit}, lines 10ff).
     \ENDIF
   \end{algorithmic}
 \end{algorithm}
-% }}
+% }}}
 
 \begin{figure*}
   \begin{subfigure}[b]{\textwidth}
@@ -138,15 +154,12 @@ two new partitions (Algorithm~\ref{alg:fit}, lines 10ff).
   \end{subfigure}
   \caption{Example of FIT on a dataset seen in Figure
     \ref{fig:scatter_example}. $\gamma$ simply computes the
-      probability of all the elements in the partition,
-      returns a function returning the label with the
+      probability of each label in $y$ and returns a
+      function returning the label with the
       maximum probability and as loss 1 - the maximum
-      probability:
-      $\gamma(X,y) = f(z) \leftarrow l \in
-      \text{label space where: }
-      l = max(P(label(x \in X))), 1 - P(l)$. The
-      thresholds are: $\tau_l = 1$, $\tau_{|X|} = 2$.
-      $\tau_h$ can be any integer above 2.
+      probability. The thresholds are: $\tau_l = 1$,
+      $\tau_{|X|} = 2$. $\tau_h$ can be any integer above
+      2.
     }
 \end{figure*}
 

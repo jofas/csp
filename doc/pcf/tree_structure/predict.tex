@@ -8,9 +8,17 @@ property of the Leaf, otherwise $\Lambda$ is returned
 
 $\Lambda$ must not be an element of the label set.
 
+PREDICT is fairly similar to the search operation of a
+binary tree, except for the type distinction and the
+prediction.\cite[chapter 12.2]{Cormen} Therefore, PREDICT
+has a worst case time complexity of $\mathcal{O}(\tau_h +
+\mathcal{O}(\text{predictor}))$.
+
 \begin{algorithm}
   \caption{: PREDICT($\Theta, x, h$)}%
   \label{alg:pred}
+  A Tree's PREDICT operation.
+
   Inputs:
 
     \begin{tabu}{llX}
