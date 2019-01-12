@@ -16,13 +16,6 @@ def plot(clf, X, y):
     Z = Z.reshape(xx.shape)
 
     plt.pcolormesh(xx, yy, Z, cmap=pl.cm.binary)#,alpha=0.5)
-    '''
-    # Plot also the test points
-    grade_sig = [X_test[ii][0] for ii in range(0, len(X_test)) if y_test[ii]==0]
-    bumpy_sig = [X_test[ii][1] for ii in range(0, len(X_test)) if y_test[ii]==0]
-    grade_bkg = [X_test[ii][0] for ii in range(0, len(X_test)) if y_test[ii]==1]
-    bumpy_bkg = [X_test[ii][1] for ii in range(0, len(X_test)) if y_test[ii]==1]
-    '''
 
     l0 = np.array([X[i] for i in range(len(X)) if y[i] == 0.0])
     l1 = np.array([X[i] for i in range(len(X)) if y[i] == 1.0])

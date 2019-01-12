@@ -234,7 +234,7 @@
 
 \begin{figure*}
 
-  %\begin{comment}
+  \begin{comment}
   \begin{subfigure}[b]{0.3\textwidth}
     \centering
     \scalebox{0.75}{\visualizeds{tests/data/e2_ls2}}
@@ -282,14 +282,16 @@
     \scalebox{0.75}{\visualizeds{tests/data/e10_ls10}}
     \caption{$\tau_{|X|} = 10$, $N = 10$}
   \end{subfigure}
-  %\end{comment}
+  \end{comment}
 
   \begin{flushright}
   \begin{tikzpicture}
-    \node[color=red, circle, draw, label=right:label 0]
-      at (0,0) (l_zero) {};
-    \node[color=blue, circle, draw, label=right:label 1,
-      below=0.2 of l_zero] (l_one) {};
+    \begin{scope}[label distance=2pt]
+    \node[color=red, circle, draw,fill,label=right:label 0,
+      inner sep=1.5pt] at (0,0) (l_zero) {};
+    \node[color=blue, circle,draw,fill,label=right:label 1,
+      below=0.2 of l_zero, inner sep=1.5pt] (l_one) {};
+    \end{scope}
     \node[color=red!50,opacity=0.5,label=right:predicted 0,
       below=0.2 of l_one, fill, draw] (m_zero) {};
     \node[color=blue!50,opacity=0.5,below=0.2 of m_zero,
@@ -305,6 +307,6 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-\bibliography{../csp}
+\bibliography{pcf}
 
 \end{document}

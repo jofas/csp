@@ -73,17 +73,18 @@ disjoint partitions and FIT is recursively applied to the
 two new partitions (Algorithm~\ref{alg:fit}, lines 10ff).
 
 Since $\tau_h$ is defined, the maximum amount of nodes a
-Tree can have is $2^{\tau_h + 1} - 1$, if the Tree would
-be perfectly balanced. For each node FIT is called, so
-building a Tree has a worst case time complexity of
-$\mathcal{O}((2^{\tau_h + 1} -1)*\mathcal{O}(\text{FIT}))$.
-$\mathcal{O}(\text{FIT})$ is determined by the size of $X$,
-since $X$ has to be splitted and by $\mathcal{O}(\gamma)$.
-That said, a single FIT operation would have a worst case
-time complexity of $\mathcal{O}(|X| + \mathcal{O}(\gamma))$
-, which would mean the time complexity of the whole fitting
-process would be $\mathcal{O}((2^{\tau_h + 1} - 1) *
-(|X| + \mathcal{O}(\gamma)))$.
+Tree can have is $2^{\tau_h + 1} - 1$\cite[chapter 16.1]%
+{Teschl}, if the Tree would be perfectly balanced. For each
+node FIT is called, so building a Tree has a worst case
+time complexity of $\mathcal{O}((2^{\tau_h + 1} -1)*
+\mathcal{O}(\text{FIT}))$. $\mathcal{O}(\text{FIT})$ is
+determined by the size of $X$, since $X$ has to be splitted
+and by $\mathcal{O}(\gamma)$. That said, a single FIT
+operation would have a worst case time complexity of
+$\mathcal{O}(|X| + \mathcal{O}(\gamma))$, which would mean
+the time complexity of the whole fitting process would be
+$\mathcal{O}((2^{\tau_h + 1} - 1) * (|X| + \mathcal{O}
+(\gamma)))$.
 
 % {{{
 \begin{algorithm}
