@@ -122,7 +122,7 @@ def test_estimator_size():
 
     known_fit, known_pred, acc_fit, acc_pred = [],[],[],[]
 
-    for i in [1,2,3,4,5,10,15,20,25,30,40,50,75,100]:
+    for i in [150,200]:
         print("\n{}".format(i))
 
         clf = PartialClassificationForest(

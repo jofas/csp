@@ -1,0 +1,169 @@
+\def\setmeshr#1{
+  \def\meshr{#1}
+}
+\def\meshr{1pt}
+
+\pgfooclass{meshgrid visualizer}{
+  % Stores the name of the visualizer. This is needed for
+  % filtering and configuration
+  \attribute name;
+
+  % The constructor. Just setup the attribute.
+  \method meshgrid visualizer(#1) { \pgfooset{name}{#1} }
+
+  % Connect to visualize signal.
+  \method default connects() {
+    \pgfoothis.get handle(\me)
+    \pgfkeysvalueof{/pgf/data visualization/obj}.connect(
+      \me,visualize,visualize datapoint signal)
+  }
+
+  % This method is invoked for each data point. It checks
+  % whether the data point belongs to the correct
+  % visualizer and, if so, calls the macro \dovisualization
+  % to do the actual visualization.
+  \method visualize() {
+    \pgfdvfilterpassedtrue
+    \pgfdvnamedvisualizerfilter
+    \ifpgfdvfilterpassed
+      \dovisualization
+    \fi
+  }
+}
+
+\def\dovisualization{
+  \pgfkeysvalueof{%
+    /data point/\pgfoovalueof{name}/execute at begin%
+  }
+
+  \pgfpointdvdatapoint
+  \pgfgetlastxy{\macrox}{\macroy}
+
+  \pgfmathsetmacro\xlow {\macrox - \meshr}
+  \pgfmathsetmacro\ylow {\macroy - \meshr}
+  \pgfmathsetmacro\xhigh{\macrox + \meshr}
+  \pgfmathsetmacro\yhigh{\macroy + \meshr}
+
+  \pgfpathrectanglecorners{\pgfpoint{\xlow}{\ylow}}
+                          {\pgfpoint{\xhigh}{\yhigh}}
+
+  \pgfkeysvalueof{%
+    /data point/\pgfoovalueof{name}/execute at end%
+  }
+}
+\tikzdatavisualizationset{
+  visualize as meshgrid/.style={
+    new object={
+      when=after survey,
+      store=/tikz/data visualization/visualizers/#1,
+      class=meshgrid visualizer,
+      arg1=#1
+    },
+    new visualizer={#1}{%
+      color=visualizer color,
+      every path/.style={fill,draw,opacity=0.5},
+    }{},
+    /data point/set=#1
+  },
+  visualize as meshgrid/.default=meshgrid
+}
+
+\setmeshr{0.5pt}
+
+\def\visualizeds#1{
+  \begin{tikzpicture}
+    \datavisualization [
+      scientific axes=clean,
+      visualize as meshgrid/.list={mesh0, mesh1},
+      visualize as scatter/.list={data0, data1},
+      mesh0={style={color=red!50}},
+      mesh1={style={color=blue!50}},
+      data0={style={mark=o, mark size=0.1pt,
+        visualizer color=red}},
+      data1={style={mark=o, mark size=0.1pt,
+        visualizer color=blue}},
+    ]
+    data[headline={x, y}, read from file=#1.mesh_0.csv,
+      set=mesh0]
+    data[headline={x, y}, read from file=#1.mesh_1.csv,
+      set=mesh1]
+    data[headline={x, y}, read from file=#1.data_0.csv,
+      set=data0]
+    data[headline={x, y}, read from file=#1.data_1.csv,
+      set=data1]
+    ;
+  \end{tikzpicture}
+}
+
+% descision surface figure {{{
+\begin{figure*}
+  \begin{comment}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \scalebox{0.75}{\visualizeds{tests/data/e2_ls2}}
+    \caption{$\tau_{|X|} = 2$, $N = 2$}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \scalebox{0.75}{\visualizeds{tests/data/e5_ls2}}
+    \caption{$\tau_{|X|} = 2$, $N = 5$}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \scalebox{0.75}{\visualizeds{tests/data/e10_ls2}}
+    \caption{$\tau_{|X|} = 2$, $N = 10$}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \scalebox{0.75}{\visualizeds{tests/data/e2_ls5}}
+    \caption{$\tau_{|X|} = 5$, $N = 2$}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \scalebox{0.75}{\visualizeds{tests/data/e5_ls5}}
+    \caption{$\tau_{|X|} = 5$, $N = 5$}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \scalebox{0.75}{\visualizeds{tests/data/e10_ls5}}
+    \caption{$\tau_{|X|} = 5$, $N = 10$}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \scalebox{0.75}{\visualizeds{tests/data/e2_ls10}}
+    \caption{$\tau_{|X|} = 10$, $N = 2$}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \scalebox{0.75}{\visualizeds{tests/data/e5_ls10}}
+    \caption{$\tau_{|X|} = 10$, $N = 5$}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \scalebox{0.75}{\visualizeds{tests/data/e10_ls10}}
+    \caption{$\tau_{|X|} = 10$, $N = 10$}
+  \end{subfigure}
+  \end{comment}
+
+  \begin{flushright}
+    \begin{tikzpicture}
+      \begin{scope}[label distance=2pt]
+        \node[color=red, circle, draw,fill,
+          label=right:label 0, inner sep=1.5pt] at (0,0)
+            (l_zero) {};
+        \node[color=blue, circle,draw,fill,
+          label=right:label 1, below=0.2 of l_zero,
+          inner sep=1.5pt] (l_one) {};
+      \end{scope}
+
+      \node[color=red!50,opacity=0.5,
+        label=right:predicted 0, below=0.2 of l_one, fill,
+        draw] (m_zero) {};
+      \node[color=blue!50,opacity=0.5,below=0.2 of m_zero,
+        label=right:predicted 1, fill, draw] (m_one) {};
+    \end{tikzpicture}
+  \end{flushright}
+\end{figure*}
+% }}}
