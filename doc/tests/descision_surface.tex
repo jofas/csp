@@ -102,6 +102,7 @@
     \centering
     \scalebox{0.75}{\visualizeds{tests/data/e2_ls2}}
     \caption{$\tau_{|X|} = 2$, $N = 2$}
+    \label{x2_n2}
   \end{subfigure}
   \begin{subfigure}[b]{0.3\textwidth}
     \centering
@@ -144,6 +145,7 @@
     \centering
     \scalebox{0.75}{\visualizeds{tests/data/e10_ls10}}
     \caption{$\tau_{|X|} = 10$, $N = 10$}
+    \label{x10_n10}
   \end{subfigure}
   \end{comment}
 
@@ -165,5 +167,10 @@
         label=right:predicted 1, fill, draw] (m_one) {};
     \end{tikzpicture}
   \end{flushright}
+  \caption{The descision surfaces of differently configured
+    PCFs. The threshold $\tau_{|X|}$ and the amount of
+    Trees of the PCF are different for each Figure,
+    \ref{fig:x2_n2} - \ref{fig:x10_n10}.}
+  \label{fig:descision_surface}
 \end{figure*}
 % }}}
