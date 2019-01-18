@@ -1,8 +1,9 @@
 \section{Partial Classification Forest}
 \label{sec:pcf}
 
-The PCF has two parameters, $N$ and an array with $N$
-pointers. $N$ is the amount of Trees the PCF maintains.
+The PCF has two parameters, (\romannumeral 1) $N$ and
+(\romannumeral 2) an array with $N$ pointers.
+$N$ is the amount of Trees the PCF maintains.
 Initially the pointers inside the array are references to
 Nil nodes.
 
@@ -12,7 +13,7 @@ The PCF offers the same two operations a Tree has, FIT
 Tree operations.
 
 Once FIT is executed, the pointers are references to the
-root of fitted Tree instances.
+roots of fitted Tree instances.
 
 Both FIT and PREDICT can be implemented as multithreaded
 operations as long as $\gamma$ is threadsafe, since the

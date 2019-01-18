@@ -4,7 +4,7 @@
       \datavisualization [
         scientific axes=clean,
         x axis={label={$N$}},
-        y axis={label={Predicted}},
+        y axis={label={$predicted$}},
         visualize as line/.list={fit, pred},
         fit={style={color=red}},
         pred={style={color=blue}},
@@ -21,7 +21,7 @@
       \datavisualization [
         scientific axes=clean,
         x axis={label={$N$}},
-        y axis={label={Accuracy}},
+        y axis={label={$accuracy$}},
         visualize as line/.list={fit, pred},
         fit={style={color=red}},
         pred={style={color=blue}},
@@ -44,5 +44,6 @@
     \end{tikzpicture}
   \end{flushright}
   \caption{The amount of Trees of the PCF $N$, in relation
-    to the Predicted and the Accuracy value.}
+    to $predicted$ and $accuracy$.}
+  \label{fig:n}
 \end{figure*}

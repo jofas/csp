@@ -76,6 +76,8 @@
       scientific axes=clean,
       visualize as meshgrid/.list={mesh0, mesh1},
       visualize as scatter/.list={data0, data1},
+      x axis={label={$x_0$}},
+      y axis={label={$x_1$}},
       mesh0={style={color=red!50}},
       mesh1={style={color=blue!50}},
       data0={style={mark=o, mark size=0.1pt,
@@ -102,7 +104,7 @@
     \centering
     \scalebox{0.75}{\visualizeds{tests/data/e2_ls2}}
     \caption{$\tau_{|X|} = 2$, $N = 2$}
-    \label{x2_n2}
+    \label{fig:x2_n2}
   \end{subfigure}
   \begin{subfigure}[b]{0.3\textwidth}
     \centering
@@ -113,7 +115,10 @@
     \centering
     \scalebox{0.75}{\visualizeds{tests/data/e10_ls2}}
     \caption{$\tau_{|X|} = 2$, $N = 10$}
+    \label{fig:x2_n10}
   \end{subfigure}
+
+  \vspace{1cm}
 
   \begin{subfigure}[b]{0.3\textwidth}
     \centering
@@ -131,10 +136,13 @@
     \caption{$\tau_{|X|} = 5$, $N = 10$}
   \end{subfigure}
 
+  \vspace{1cm}
+
   \begin{subfigure}[b]{0.3\textwidth}
     \centering
     \scalebox{0.75}{\visualizeds{tests/data/e2_ls10}}
     \caption{$\tau_{|X|} = 10$, $N = 2$}
+    \label{fig:x10_n2}
   \end{subfigure}
   \begin{subfigure}[b]{0.3\textwidth}
     \centering
@@ -145,7 +153,7 @@
     \centering
     \scalebox{0.75}{\visualizeds{tests/data/e10_ls10}}
     \caption{$\tau_{|X|} = 10$, $N = 10$}
-    \label{x10_n10}
+    \label{fig:x10_n10}
   \end{subfigure}
   \end{comment}
 
@@ -169,7 +177,7 @@
   \end{flushright}
   \caption{The descision surfaces of differently configured
     PCFs. The threshold $\tau_{|X|}$ and the amount of
-    Trees of the PCF are different for each Figure,
+    Trees $N$ of the PCF are different for each Figure,
     \ref{fig:x2_n2} - \ref{fig:x10_n10}.}
   \label{fig:descision_surface}
 \end{figure*}
