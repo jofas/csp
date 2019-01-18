@@ -18,13 +18,13 @@ either another Node or a Leaf.
 
 A Leaf on the other hand, is the structure
 representing a partition of the feature space, having the
-following properties: (\romannumeral 1) active: a boolean
+following properties: (\romannumeral 1) $active$: a boolean
 value deciding whether the partition's quality, determined
 during the FIT operation, is equal or better than the
 defined threshold or not; (\romannumeral 2) optionally a
 predictor which is used to classify oberservations during
-the PREDICT operation. Only if a Leaf's active property is
-true, a predictor must be provided. A Leaf also has two
+the PREDICT operation. Only if a Leaf's $active$ property
+is true, a predictor must be provided. A Leaf also has two
 vectors with arbitrary length as properties:
 (\romannumeral 3) a vector containing the observations of
 the dataset used in FIT, which are laying inside the

@@ -3,9 +3,9 @@
 
 This chapter will present two conducted tests. It should
 be noted here that, like described in the Introduction,
-these are not very comprehensive tests. This chapter serves
-more as visualizing the use of the PCF predicting on
-partitions of otherwise unpredictable datasets.
+these are not very comprehensive tests. This chapter rather
+visualizes the use of the PCF predicting on partitions of
+otherwise unpredictable datasets.
 
 The first test will visualize what the descision surface of
 the PCF looks like, the second will show how the PCF
@@ -30,11 +30,11 @@ probability to be chosen as an observation for the dataset.
 
 It is common practise in machine learning to split a
 dataset into a training and a test set in order to find
-the best model. This approach is also used for the PCF.
-The training set is used as the parameters $X$ and $y$ of
-FIT (Algorithm~\ref{alg:pcf_fit}) while PREDICT
-(Algorithm~\ref{alg:pcf_pred}) is used on every observation
-of the test set.
+the best model.\cite[chapter 18]{ki} This approach is also
+used for the PCF. The training set is used as the
+parameters $X$ and $y$ of FIT (Algorithm~\ref{alg:pcf_fit})
+while PREDICT (Algorithm~\ref{alg:pcf_pred}) is used on
+every observation of the test set.
 
 Two metrics are used to describe the behaviour of the PCF,
 (\romannumeral 1) $predicted$ and (\romannumeral 2)
@@ -88,13 +88,8 @@ observations are predictable than test observations
 (cmp. Figure~\ref{fig:n}).
 
 
-% TODO: intro to tests... why these tests and shortcomings
-%       cite
-%       $ $ on properties
-%       numbers as numbers and not text ??
-
-%different $N$'s, two, five and ten were combined with three
-%different values for $\tau_{|X|}$, th
+% TODO:
+%       cite (chapter)
 
 \input{tests/descision_surface}
 
