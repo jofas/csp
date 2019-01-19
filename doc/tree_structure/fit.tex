@@ -65,10 +65,11 @@ tuple with the minimum and maximum value in the dimension
 of all observations in $X$.
 
 $\beta_X[\text{dimension}]$ is passed to a pseudo-random
-number generator generating a random value so that
-$lower(\beta_X[\text{dimension}]) \leq \text{random number}
-\leq upper(\beta_X[\text{dimension}])$
-(Algorithm~\ref{alg:fit}, line 8).
+number generator\footnote{The implementation uses Python
+3.6's random library.\cite[chapter 9.6]{python}} generating
+a random value so that $lower(\beta_X[\text{dimension}])
+\leq \text{random number} \leq upper(\beta_X[
+\text{dimension}])$ (Algorithm~\ref{alg:fit}, line 8).
 
 Afterwards $X$, $y$, $\beta_X$ are splitted into two new
 disjoint partitions and FIT is recursively applied to the
