@@ -2,17 +2,21 @@
 
 The PREDICT operation traverses a Tree until it encounters
 a Leaf. If the Leaf is active a label to a provided
-observation $x$ is returned by the predictor
+observation $x$ is returned by the classifier
 property of the Leaf, otherwise $\Lambda$ is returned
 (Algorithm~\ref{alg:pred}).
 
 $\Lambda$ must not be an element of the label set.
 
+Since the PCF does not predict on its own but instead uses
+other classifier instances for the actual prediction the
+PCF is a Meta Classifier.\cite[chapter 4.6]{pymvpa}
+
 PREDICT is fairly similar to the search operation of a
 binary tree, except for the type distinction and the
 prediction.\cite[chapter 12.2]{Cormen} Therefore, PREDICT
 has a worst case time complexity of $\mathcal{O}(\tau_h +
-\mathcal{O}(\text{predictor}))$.
+\mathcal{O}(\text{classifier}))$.
 
 \begin{algorithm}
   \caption{: PREDICT($\Theta, x, h$)}%
@@ -35,13 +39,13 @@ has a worst case time complexity of $\mathcal{O}(\tau_h +
   \begin{algorithmic}[1]
     \IF{TYPE($\Theta$) is Node}
       \STATE dimension $\leftarrow h$ mod $|x|$
-      \IF{$x[dimension] \leq \Theta$.split}
+      \IF{$x[\text{dimension}] \leq \Theta$.split}
         \STATE PREDICT($\Theta$.left, $x$, $h + 1$)
       \ELSE
         \STATE PREDICT($\Theta$.right, $x$, $h + 1$)
       \ENDIF
     \ELSIF{$\Theta$.active}
-      \RETURN $\Theta$.predictor($x$)
+      \RETURN $\Theta$.classifier($x$)
     \ELSE
       \RETURN $\Lambda$
     \ENDIF

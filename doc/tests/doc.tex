@@ -1,9 +1,9 @@
 \section{Tests}
 \label{sec:tests}
 
-This chapter will present two conducted tests. It should
+This Section will present two conducted tests. It should
 be noted here that, like described in the Introduction,
-these are not very comprehensive tests. This chapter rather
+these are not very comprehensive tests. This Section rather
 visualizes the use of the PCF predicting on partitions of
 otherwise unpredictable datasets.
 
@@ -31,9 +31,7 @@ observation for the dataset.
 
 It is common practise in machine learning to split a
 dataset into a training and a test set in order to find
-the best model.\footnote{For splitting scikit-learn's
-  model\_selection.train\_test\_split was used during the
-  tests.\cite{sklearn_api}}\cite[chapter 18]{ki}
+the best model.\cite[chapter 18]{ki}
 This approach is also used for the PCF. The training set is
 used as the parameters $X$ and $y$ of FIT (Algorithm~%
 \ref{alg:pcf_fit}) while PREDICT (Algorithm~%
@@ -55,7 +53,10 @@ same. $\gamma$ and $\tau_l$ are equal to the values used in
 Figure~\ref{fig:fit_example} while $\tau_h = 32$. The
 dataset was splitted into a training and a test set such
 that ten percent of the observations were used as the test
-set. The observations were chosen randomly.
+set.\footnote{For splitting scikit-learn's
+  model\_selection.train\_test\_split was used during the
+  tests.\cite{sklearn_api}} The observations were chosen
+randomly.
 
 The first test will show the descision surface of the PCF
 with different $N$ and $\tau_{|X|}$. For the test three
@@ -77,23 +78,20 @@ has on $predicted$ and $accuracy$. In this test
 $\tau_{|X|}$ equals four.
 
 Figure~\ref{fig:n} shows that, for this dataset with the
-chosen thresholds, $N < 30$ has variations, both in
-$predicted$ and $accuracy$. Is $30 \leq N \leq 100$
-$accuracy$ is constant and equals $\tau_l$. $Predicted$ on
-the other hand, still rises in this interval. Is
-$N \geq 100$ $predicted$ is higher than $predicted$ with
-$N = 100$ and constant, but $accuracy$ fails to meet
-$\tau_l$, which means the PCF is overfitting.
+chosen thresholds, the PCF instances with $N < 30$ variate,
+both their $predicted$ and $accuracy$ values. Is $30 \leq N
+\leq 100$ $accuracy$ is constant and equals $\tau_l$.
+$Predicted$ on the other hand, still rises in this
+interval. Is $N \geq 100$ $predicted$ is higher than
+$predicted$ with $N = 100$ and constant, but $accuracy$
+fails to meet $\tau_l$, which means the PCF instances are
+overfitting.
 
 Furthermore the second test relates $predicted$ and
 $accuracy$ of the observations from the test set to the
 values for the training set, showing that more training
 observations are predictable than test observations
 (cmp. Figure~\ref{fig:n}).
-
-
-% TODO:
-%       cite (chapter)
 
 \input{tests/descision_surface}
 
