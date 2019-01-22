@@ -97,66 +97,7 @@
   \end{tikzpicture}
 }
 
-% descision surface figure {{{
-\begin{figure*}
-  \begin{comment}
-  \begin{subfigure}[b]{0.3\textwidth}
-    \centering
-    \scalebox{0.75}{\visualizeds{tests/data/e2_ls2}}
-    \caption{$\tau_{|X|} = 2$, $N = 2$}
-    \label{fig:x2_n2}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.3\textwidth}
-    \centering
-    \scalebox{0.75}{\visualizeds{tests/data/e5_ls2}}
-    \caption{$\tau_{|X|} = 2$, $N = 5$}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.3\textwidth}
-    \centering
-    \scalebox{0.75}{\visualizeds{tests/data/e10_ls2}}
-    \caption{$\tau_{|X|} = 2$, $N = 10$}
-    \label{fig:x2_n10}
-  \end{subfigure}
-
-  \vspace{1cm}
-
-  \begin{subfigure}[b]{0.3\textwidth}
-    \centering
-    \scalebox{0.75}{\visualizeds{tests/data/e2_ls5}}
-    \caption{$\tau_{|X|} = 5$, $N = 2$}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.3\textwidth}
-    \centering
-    \scalebox{0.75}{\visualizeds{tests/data/e5_ls5}}
-    \caption{$\tau_{|X|} = 5$, $N = 5$}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.3\textwidth}
-    \centering
-    \scalebox{0.75}{\visualizeds{tests/data/e10_ls5}}
-    \caption{$\tau_{|X|} = 5$, $N = 10$}
-  \end{subfigure}
-
-  \vspace{1cm}
-
-  \begin{subfigure}[b]{0.3\textwidth}
-    \centering
-    \scalebox{0.75}{\visualizeds{tests/data/e2_ls10}}
-    \caption{$\tau_{|X|} = 10$, $N = 2$}
-    \label{fig:x10_n2}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.3\textwidth}
-    \centering
-    \scalebox{0.75}{\visualizeds{tests/data/e5_ls10}}
-    \caption{$\tau_{|X|} = 10$, $N = 5$}
-  \end{subfigure}
-  \begin{subfigure}[b]{0.3\textwidth}
-    \centering
-    \scalebox{0.75}{\visualizeds{tests/data/e10_ls10}}
-    \caption{$\tau_{|X|} = 10$, $N = 10$}
-    \label{fig:x10_n10}
-  \end{subfigure}
-  \end{comment}
-
+\def\dslegend{
   \begin{flushright}
     \begin{tikzpicture}
       \begin{scope}[label distance=2pt]
@@ -175,6 +116,131 @@
         label=right:predicted 1, fill, draw] (m_one) {};
     \end{tikzpicture}
   \end{flushright}
+}
+
+% descision surface figure {{{
+\begin{figure*}
+  \begin{comment}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \scalebox{0.7}{%
+      \visualizeds{tests/data/descision_surface/e2_ls2}}
+    \caption{}
+    \vspace{-0.5cm}
+    \begin{align*}
+      \tau_{|X|} = 2&, N = 2, \\
+      predicted &= \input{tests/data/descision_surface/e2_ls2_pred}, \\
+      accuracy &= \input{tests/data/descision_surface/e2_ls2_acc}
+    \end{align*}
+    \label{fig:x2_n2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \scalebox{0.7}{%
+      \visualizeds{tests/data/descision_surface/e5_ls2}}
+    \caption{}
+    \vspace{-0.5cm}
+    \begin{align*}
+      \tau_{|X|} = 2&, N = 5, \\
+      predicted &= \input{tests/data/descision_surface/e5_ls2_pred}, \\
+      accuracy &= \input{tests/data/descision_surface/e5_ls2_acc}
+    \end{align*}
+    \label{fig:x2_n5}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \scalebox{0.7}{%
+      \visualizeds{tests/data/descision_surface/e10_ls2}}
+    \caption{}
+    \vspace{-0.5cm}
+    \begin{align*}
+      \tau_{|X|} = 2&, N = 10, \\
+      predicted &= \input{tests/data/descision_surface/e10_ls2_pred}, \\
+      accuracy &= \input{tests/data/descision_surface/e10_ls2_acc}
+    \end{align*}
+    \label{fig:x2_n10}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \scalebox{0.7}{%
+      \visualizeds{tests/data/descision_surface/e2_ls5}}
+    \caption{}
+    \vspace{-0.5cm}
+    \begin{align*}
+      \tau_{|X|} = 5&, N = 2, \\
+      predicted &= \input{tests/data/descision_surface/e2_ls5_pred}, \\
+      accuracy &= \input{tests/data/descision_surface/e2_ls5_acc}
+    \end{align*}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \scalebox{0.7}{%
+      \visualizeds{tests/data/descision_surface/e5_ls5}}
+    \caption{}
+    \vspace{-0.5cm}
+    \begin{align*}
+      \tau_{|X|} = 5&, N = 5, \\
+      predicted &= \input{tests/data/descision_surface/e5_ls5_pred}, \\
+      accuracy &= \input{tests/data/descision_surface/e5_ls5_acc}
+    \end{align*}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \scalebox{0.7}{%
+      \visualizeds{tests/data/descision_surface/e10_ls5}}
+    \caption{}
+    \vspace{-0.5cm}
+    \begin{align*}
+      \tau_{|X|} = 5&, N = 10, \\
+      predicted &= \input{tests/data/descision_surface/e10_ls5_pred}, \\
+      accuracy &= \input{tests/data/descision_surface/e10_ls5_acc}
+    \end{align*}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \scalebox{0.7}{%
+      \visualizeds{tests/data/descision_surface/e2_ls10}}
+    \caption{}
+    \vspace{-0.5cm}
+    \begin{align*}
+      \tau_{|X|} = 10&, N = 2, \\
+      predicted &= \input{tests/data/descision_surface/e2_ls10_pred}, \\
+      accuracy &= \input{tests/data/descision_surface/e2_ls10_acc}
+    \end{align*}
+    \label{fig:x10_n2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \scalebox{0.7}{%
+      \visualizeds{tests/data/descision_surface/e5_ls10}}
+    \caption{}
+    \vspace{-0.5cm}
+    \begin{align*}
+      \tau_{|X|} = 10&, N = 5, \\
+      predicted &= \input{tests/data/descision_surface/e5_ls10_pred}, \\
+      accuracy &= \input{tests/data/descision_surface/e5_ls10_acc}
+    \end{align*}
+    \label{fig:x10_n5}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \scalebox{0.7}{%
+      \visualizeds{tests/data/descision_surface/e10_ls10}}
+    \caption{}
+    \vspace{-0.5cm}
+    \begin{align*}
+      \tau_{|X|} = 10&, N = 10, \\
+      predicted &= \input{tests/data/descision_surface/e10_ls10_pred}, \\
+      accuracy &= \input{tests/data/descision_surface/e10_ls10_acc}
+    \end{align*}
+    \label{fig:x10_n10}
+  \end{subfigure}
+  \end{comment}
+
+  \dslegend
+
   \caption{The descision surfaces of differently configured
     PCFs. The threshold $\tau_{|X|}$ and the amount of
     Trees $N$ of the PCF are different for each Figure,
@@ -182,3 +248,43 @@
   \label{fig:descision_surface}
 \end{figure*}
 % }}}
+
+\begin{figure*}
+  \begin{comment}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \scalebox{0.7}{%
+      \visualizeds{tests/data/other_classif/svm}}
+    \caption{Support Vector Machine.}
+    \vspace{-0.5cm}
+    \begin{align*}
+      Accuracy = \input{tests/data/other_classif/svm_acc}
+    \end{align*}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \scalebox{0.7}{%
+      \visualizeds{tests/data/other_classif/rf}}
+    \caption{Random Forest.}
+    \vspace{-0.5cm}
+    \begin{align*}
+      Accuracy = \input{tests/data/other_classif/rf_acc}
+    \end{align*}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+    \scalebox{0.7}{%
+      \visualizeds{tests/data/other_classif/nn}}
+    \caption{K Nearest Neighbor.}
+    \vspace{-0.5cm}
+    \begin{align*}
+      Accuracy = \input{tests/data/other_classif/nn_acc}
+    \end{align*}
+  \end{subfigure}
+  \end{comment}
+
+  \dslegend
+
+  \caption{Some caption.}
+  \label{fig:other_classif}
+\end{figure*}
