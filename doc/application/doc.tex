@@ -1,15 +1,11 @@
-\section{Tests}
-\label{sec:tests}
+\section{Application}
+\label{sec:application}
 
-This Section will present two conducted tests. It should
-be noted here that, like described in the Introduction,
-these are not very comprehensive tests. This Section rather
-visualizes the use of the PCF predicting on partitions of
-otherwise unpredictable datasets.
-
-The first test will visualize what the descision surface of
-the PCF looks like, the second will show how the PCF
-behaves with different amounts of Trees.
+This Section will further outline the use case of the PCF,
+display results of a test on an artifical dataset and
+compare it to other classifiers. Furthermore a test of the
+PCF's behaviour with different amounts of Trees will be
+shown.
 
 Both tests are performed on a randomly generated,
 normalized, two dimensional and binary labeled dataset. The
@@ -29,6 +25,15 @@ generator\cite[chapter 9.6]{python}, therefore, every point
 on the plane has the same probability to be chosen as an
 observation for the dataset.
 
+The dataset is designed this way in order to be able to
+show the application of the PCF in the domain of partial
+classification. Only twenty percent of the whole dataset is
+predictable which makes it impossible for other,
+non-partial classifiers to be able to find an adequate
+descision surface. The following tests all take
+$\tau_l = 1$ as quality threshold which is impossible to
+achieve predicting on the whole dataset.
+
 It is common practise in machine learning to split a
 dataset into a training and a test set in order to find
 the best model.\cite[chapter 18]{ki}
@@ -46,7 +51,10 @@ label from the dataset.
 
 $Predicted$ is the percentage of predicted observations,
 while $accuracy$ is the percentage of correctly classified
-observartions from the test set.
+observartions from the test set. $Accuracy$ is used as the
+quality measurement, which means in the context of this
+tests, every classifier not able to achieve $accuracy = 1$
+is not acceptable.
 
 For both tests $\gamma$, $\tau_l$ and $\tau_h$ are the
 same. $\gamma$ and $\tau_l$ are equal to the values used in
@@ -70,8 +78,18 @@ $accuracy$ equal to $\tau_l$. This results in the chaotic
 descision surfaces shown in Figures~\ref{fig:x2_n2} -
 \ref{fig:x2_n10}. On the other hand for $\tau{|X|} = 10$
 the descision surface is very small which means the PCF's
-$predicted$ is less than twenty percent (Figures~%
+$predicted$ is far less than twenty percent (Figures~%
 \ref{fig:x10_n2} - \ref{fig:x10_n10}).
+
+How non-partial classifiers perform on the dataset can be
+seen in Figure~\ref{fig:other_classif}. Three common
+classifiers are tested, all from the scikit-learn library.%
+\cite{sklearn_api} Their parameters are the standard
+parameters given by scikit-learn. Tested were the Support
+Vector Machine, Random Forest and K Nearest Neighbors,
+where K in this case is five.\cite{sklearn_api}
+Figure~\ref{fig:other_classif} also shows the $accuracy$ of
+these classifiers. None are close to $\tau_l = 1$.
 
 The second test shows the influence the amount of Trees $N$
 has on $predicted$ and $accuracy$. In this test
@@ -93,6 +111,6 @@ values for the training set, showing that more training
 observations are predictable than test observations
 (cmp. Figure~\ref{fig:n}).
 
-\input{tests/descision_surface}
+\input{application/descision_surface}
 
-\input{tests/n_estimators}
+\input{application/n_estimators}

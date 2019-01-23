@@ -1,12 +1,12 @@
-\section{Further optimizations and additional features}
-\label{sec:oandf}
+\section{Possible additional features}
+\label{sec:features}
 
-There are some possible optimizations to the PCF which were
-not discussed in the previous Sections. Again it should be
-noted that these optimizations are yet untested (see
-Introduction).
+There are some possible features and optimizations to the
+PCF which were not discussed in the previous Sections.
+Again it should be noted that these features and
+optimizations are yet untested (see Introduction).
 
-The proposed optimizations are:
+The proposed features are:
 
 \begin{enumerate}
 
@@ -17,9 +17,14 @@ The proposed optimizations are:
   \item Chosing the dimension a Node has randomly rather
         than cyclic (cmp. Section~\ref{subsec:fit}).
 
+  \item Add a rotation matrix to every Tree.
+
+  \item A second, more light-weight variant of the PCF
+        reducing the memory usage, depending on $\gamma$.
+
 \end{enumerate}
 
-The first optimization would be to weigh partitions. As of
+The first feature would be to weigh partitions. As of
 right now, the PCF's PREDICT operation determines $l_{max}$
 as the label predicted most (Algorithm~\ref{alg:pcf_pred},
 line 5).
@@ -43,19 +48,23 @@ prediction is summed and the label with the highest sum
 will be returned by PREDCIT as $l_{max}$.
 
 The second optimization is densifying a Tree after FIT.
-If a Node has two unactive Leaves as children the Node is
+If a Node has two inactive Leaves as children the Node is
 unnecessary since either way $\Lambda$ is returned. The
 Node could be transformed into an unactive Leaf, reducing
 the path length of the branch by one and decreasing the
 amount of nodes by two, which decreases the size of the
 Tree and therefore the time complexity of PREDICT.
 
-The last possible optimization would be to chose the
-splitting  dimension, like the splitting value, at random
-rather than cyclic. A Node would have to store the
-dimension it is splitting.
+Two features inspired by methods used in the Approximate
+Nearest Neighbor Search are (\romannumeral 1) chosing the
+splitting dimension, like the splitting value, at random
+rather than cyclic (cmp. Section~\ref{subsec:fit}) and
+(\romannumeral 2) also rotating the data for each Tree
+instance.\cite[pages 17 - 27]{anns} This further increases
+the possibility of having Trees with different structures
+and therefore partitions.\cite[page 24]{anns}
 
-In Section~\ref{sec:tests} and in Figure~%
+In Section~\ref{sec:application} and in Figure~%
 \ref{fig:fit_example} a very simple classifier is returned
 by $\gamma$. It only computes the probability for each
 label and returns the label with the highest probability
