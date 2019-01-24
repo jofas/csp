@@ -1,0 +1,30 @@
+\section{Conclusions}
+\label{sec:conclusions}
+
+In the Introduction I described what I mean by
+Partial Classification. The whole concept is based on the
+condition that a classifier needs to maintain a certain
+quality in its predictions for a given classification
+problem. If it can not do this, it is not regarded a
+solution.
+
+Partial Classification is a way to still find classifiers
+that partially solve a classification problem not solvable
+as a whole. A partial classifier only predicts the label
+of an observation if it lays inside a partition it can
+classify. Otherwise it returns nothing, indicating that
+the classifier is not sure which label the observation has.
+
+This paper provides a description of such a partial
+classifier, the Partial Classification Forest. It
+describes the core structures and operations of the PCF and
+shows its use on an artificial problem designed to display
+the use of it over other, non-partial classifiers.
+
+Also stated in the Introduction, this paper has some
+shortcomings in research and empirical tests regarding the
+PCF, due to a lack of time and no complete, fast
+implementation. A list of these shortcomings is also
+provided in the Introduction. The next step will be to make
+a fast and complete implementation before proceeding with
+the research and the empirical tests.
