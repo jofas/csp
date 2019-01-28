@@ -11,18 +11,22 @@
   returns nothing if the corresponding label is not certain
   enough.
 
-  This paper proposes such a partial classifier, a Monte
-  Carlo based ensemble method called Partial Classification
-  Forest (PCF). The PCF is a Meta Classifier generating
-  instances of a k-d tree like structure in order to
-  partition the feature space of a given dataset. This
-  paper describes the structures and operations of the PCF
-  before showing its application and comparing it to other
-  non-partial classifiers.
+  The whole idea behind Partial Classification opposes
+  the classical, non-partial classification approach:
+  rather than increasing the quality of a classifier,
+  the quality --- which must be achieved --- is set
+  beforehand and the space in which the classifier can
+  predict with the given quality needs to be increased
+  instead.
 
-  Afterwards further features and optimizations of the PCF
-  are discussed. At least conclusions and a roadmap
-  concerning the PCF are presented.
+  This paper proposes a method realising Partial
+  Classification called Partial Classification Forest
+  (PCF). The PCF is a Monte Carlo based ensemble method.
+  It is a Meta Classifier generating instances of a k-d
+  tree like structure in order to partition the feature
+  space of a given dataset. The PCF predicts on those
+  partitions in which it achieves the given quality
+  threshold.
 \end{abstract}
 
 \begin{IEEEkeywords}
