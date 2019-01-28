@@ -15,21 +15,25 @@ Tree operations.
 Once FIT is executed, the pointers are references to the
 roots of fitted Tree instances.
 
-Both FIT and PREDICT can be implemented as multithreaded
-operations as long as $\gamma$ is threadsafe, since the
+Both FIT and PREDICT can be implemented as multi-threaded
+operations as long as $\gamma$ is thread-safe, since the
 Tree instances are independent of each other and the shared
 parameters $X$, $y$ (FIT) and $x$ (PREDICT) are read only,
 making synchronization unnecessary.
 
-FIT first computes $\beta_X$ which has a time complexity of
-$\mathcal{O}(|X[0]| * |X|)$, $|X[0]|$ denoting the amount
-of dimensions the feature space has.
+FIT first computes $\beta_X$ which has a time complexity
+of:
+\begin{align}
+  \mathcal{O}(|\text{dimensions}(X)| * |X|).
+\end{align}
 
 After that the Tree's FIT operation is called $N$ times,
 which means the PCF's FIT operation has a worst case time
-complexity of $\mathcal{O} (N * (2^{\tau_h + 1} - 1) *
-(|X| + \mathcal{O}(\gamma)) + |X[0]| * |X|)$
-(cmp. Section~\ref{subsec:fit}).
+complexity of:
+\begin{align}
+  \mathcal{O} (N * \text{FIT} + |\text{dimensions}(X)|*|X|)
+\end{align}
+(see Equation~\ref{eq:O_fit} for $\mathcal{O}$(FIT)).
 
 % {{{
 \begin{algorithm}
@@ -73,8 +77,11 @@ for the observation $x$ (Algorithm~\ref{alg:pcf_pred},
 lines 5, 6).
 
 The worst case time complexity of the PCF's PREDICT
-operation is $\mathcal{O}(N * (\tau_h + \mathcal{O}
-(\text{classifier})) + N)$, since a Tree's PREDICT operation
+operation is:
+\begin{align}
+  \mathcal{O}(N * (\tau_h + \mathcal{O} (\text{classifier})) + N),
+\end{align}
+since a Tree's PREDICT operation
 is executed $N$ times, plus the most predicted label
 must be determined, which is $\mathcal{O}(N)$.
 

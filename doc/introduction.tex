@@ -1,7 +1,8 @@
 \section{Introduction}
+\label{sec:intro}
 
 Some datasets do not allow a classifier to generate a
-descision surface good enough to be able to predict unseen
+decision surface good enough to be able to predict unseen
 observations well. A dataset contains tuples of
 observations and their labels. An observation is a point
 inside the feature space whereas the label is an element
@@ -28,7 +29,7 @@ correct label. Non-partial classifier always return a
 label.
 
 For the example above: if there exists at least one
-partiton of the feature space in which a classifier can be
+partition of the feature space in which a classifier can be
 found that has an accuracy of 99 percent the problem still
 can be partially solved if this is desired.
 
@@ -53,7 +54,7 @@ Partial Classification is to increase the (sub-)space in
 which a partial classifier can predict.
 
 This paper proposes a Monte Carlo based ensemble method
-realising Partial Classification called Partial
+realizing Partial Classification called Partial
 Classification Forest (PCF). The PCF builds an ensemble of
 trees having a structure similar to k-d trees. An instance
 of this tree structure partitions the feature space of a
@@ -68,7 +69,7 @@ no complete, fast implementation. These shortcomings are:
 
 \begin{itemize}
 
-\item Tests with a more sofisticated $\gamma$ (see
+\item Tests with a more sophisticated $\gamma$ (see
       Section~\ref{subsec:fit})
 
 \item The PCF's performance on high dimensional data
@@ -76,7 +77,7 @@ no complete, fast implementation. These shortcomings are:
 \item Untested possible optimizations and features (see
       Section~\ref{sec:features})
 
-\item A Tree's growing behaviour
+\item A Tree's growing behavior
 
 \item Benchmarks
 
@@ -100,4 +101,4 @@ the PCF it will also contain a discussion about possible
 additional features which could further increase the PCF's
 performance in Section~\ref{sec:features}.
 
-Last I will finish with my conclusions and a roadmap.
+Last I will finish with my conclusions and a road map.

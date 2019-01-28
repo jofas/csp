@@ -3,8 +3,8 @@
 The PREDICT operation traverses a Tree until it encounters
 a Leaf. If the Leaf is active a label to a provided
 observation $x$ is returned by the classifier
-property of the Leaf, otherwise $\Lambda$ is returned
-(Algorithm~\ref{alg:pred}).
+property of the Leaf, otherwise nothing (here denoted with
+$\Lambda$) is returned (Algorithm~\ref{alg:pred}).
 
 $\Lambda$ must not be an element of the label set.
 
@@ -15,8 +15,10 @@ PCF is a Meta Classifier.\cite[chapter 4.6]{pymvpa}
 PREDICT is fairly similar to the search operation of a
 binary tree, except for the type distinction and the
 prediction.\cite[chapter 12.2]{Cormen} Therefore, PREDICT
-has a worst case time complexity of $\mathcal{O}(\tau_h +
-\mathcal{O}(\text{classifier}))$.
+has a worst case time complexity of:
+\begin{align}
+  \mathcal{O}(\tau_h + \mathcal{O}(\text{classifier})).
+\end{align}
 
 \begin{algorithm}
   \caption{: PREDICT($\Theta, x, h$)}%

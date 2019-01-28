@@ -4,7 +4,8 @@
 There are some possible features and optimizations to the
 PCF which were not discussed in the previous Sections.
 Again it should be noted that these features and
-optimizations are yet untested (see Introduction).
+optimizations are yet untested (see Section~%
+\ref{sec:intro}).
 
 The proposed features are:
 
@@ -12,10 +13,12 @@ The proposed features are:
 
   \item Weighing partitions.
 
-  \item Densifying a Tree after FIT.
+  \item Compressing a Tree after FIT.
 
-  \item Chosing the dimension a Node has randomly rather
-        than cyclic (cmp. Section~\ref{subsec:fit}).
+  \item Select k best or reducing $N$ in another way.
+
+  \item Choosing the dimension a Node has randomly rather
+        than cyclic (see Section~\ref{subsec:fit}).
 
   \item Add a rotation matrix to every Tree.
 
@@ -34,32 +37,37 @@ based on two properties: (\romannumeral 1) the amount
 of observations a partition contains and (\romannumeral 2)
 its volume. This would result in a weight determined as:
 \begin{align}
-  \text{weight} = \frac{|\text{partition}.X|}
+  \text{weight(partition)} = \frac{|\text{partition}.X|}
   {V(\text{partition})}.
 \end{align}
 A partition with a lot of observations and a small
 volume would have a higher weight than one with a small
 amount of observations and a high volume, further
-increasing the propability that the label predicted by the
+increasing the probability that the label predicted by the
 partition with the higher weight is determined as
 $l_{max}$. So instead of just counting each label predicted
 and returning the one predicted most, the weight of each
 prediction is summed and the label with the highest sum
-will be returned by PREDCIT as $l_{max}$.
+will be returned by PREDICT as $l_{max}$.
 
-The second optimization is densifying a Tree after FIT.
+The second optimization is compressing a Tree after FIT.
 If a Node has two inactive Leaves as children the Node is
 unnecessary since either way $\Lambda$ is returned. The
-Node could be transformed into an unactive Leaf, reducing
+Node could be transformed into an inactive Leaf, reducing
 the path length of the branch by one and decreasing the
 amount of nodes by two, which decreases the size of the
 Tree and therefore the time complexity of PREDICT.
 
+Another feature would be to reduce the amount of Trees $N$
+after FIT, removing Trees with little active partitions
+from the PCF instance, decreasing the time complexity
+of PREDICT.
+
 Two features inspired by methods used in the Approximate
-Nearest Neighbor Search are (\romannumeral 1) chosing the
-splitting dimension, like the splitting value, at random
-rather than cyclic (cmp. Section~\ref{subsec:fit}) and
-(\romannumeral 2) also rotating the data for each Tree
+Nearest Neighbor Search are (\romannumeral 1) choosing the
+splitting dimension --- like the splitting value --- at
+random rather than cyclic (see Section~\ref{subsec:fit})
+and (\romannumeral 2) also rotating the data for each Tree
 instance.\cite[pages 17 - 27]{anns} This further increases
 the possibility of having Trees with different structures
 and therefore partitions.\cite[page 24]{anns}
@@ -68,19 +76,17 @@ In Section~\ref{sec:application} and in Figure~%
 \ref{fig:fit_example} a very simple classifier is returned
 by $\gamma$. It only computes the probability for each
 label and returns the label with the highest probability
-(cmp. Figure~\ref{fig:fit_example}).
+(see Figure~\ref{fig:fit_example}).
 
 A classifier like that does not need to know where the
 observations are in the partition which makes it
 unnecessary to keep them in a Leaf node as $X$ and $y$
-(cmp. Algorithm~\ref{alg:fit}). Instead a dictionary with
+(see Algorithm~\ref{alg:fit}). Instead a dictionary with
 every label from the label space where each label is mapped
 to the amount of observations inside the partition having
-the particular label is enough.
-
-A possible feature would be to provide a second variant of
-the PCF which passes this dictionary instead of the
-observations to $\gamma$, decreasing the complexity of the
-PCF for classifiers which do not need to know where each
-observations lays inside the partition.
-
+the particular label is enough. A possible feature would be
+to provide a second variant of the PCF which passes this
+dictionary instead of the observations to $\gamma$,
+decreasing the complexity of the PCF for classifiers which
+do not need to know where each observations lays inside the
+partition.

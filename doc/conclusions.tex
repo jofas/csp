@@ -13,13 +13,29 @@ that partially solve a classification problem not solvable
 as a whole. A partial classifier only predicts the label
 of an observation if it lays inside a partition it can
 classify. Otherwise it returns nothing, indicating that
-the classifier is not sure which label the observation has.
+the classifier is not certain which label the observation
+has.
 
-This paper provides a description of such a partial
-classifier, the Partial Classification Forest. It
-describes the core structures and operations of the PCF and
-shows its use on an artificial problem designed to display
-the use of it over other, non-partial classifiers.
+This changes the whole approach to increasing a
+classifier's quality. Since a partial classifier has its
+quality set beforehand, the goal to increasing the partial
+classifier further is to enlarge the (sub-)space it can
+predict on. On the other hand: non-partial classifier do
+not have the quality given as a threshold, which means
+their quality is variable rather than the space they
+predict on.
+
+This paper provides a description of a Partial
+Classification method, the Partial Classification Forest
+(PCF). The PCF's biggest advantage is the fact it is a very
+flexible Meta-Classifier, since it treats the classifier
+instances it relies on (and their quality measurement) as a
+black box (see Section~\ref{subsec:fit} - $\gamma$).
+
+This paper describes the core structures and operations of
+the PCF and shows its use on an artificial problem designed
+to display the use of it over other, non-partial
+classifiers.
 
 Also stated in the Introduction, this paper has some
 shortcomings in research and empirical tests regarding the

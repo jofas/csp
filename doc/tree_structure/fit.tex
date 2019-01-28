@@ -1,10 +1,10 @@
 \subsection{The FIT operation}
 \label{subsec:fit}
 
-The FIT operation constructs a Tree, based on a dataset
-split in observations ($X$) and their labels ($y$).
+The FIT operation constructs a Tree based on a dataset
+split into observations ($X$) and their labels ($y$).
 Algorithm~\ref{alg:fit} shows how FIT recursively builds a
-Tree, which is at the beginning a pointer to a Nil node.
+Tree from a pointer to a Nil node.
 
 The most important parameter passed to FIT is $\gamma$.
 $\gamma$ is a function returning (\romannumeral 1) a
@@ -15,80 +15,93 @@ relevant to the PCF, as long as the classifier is callable%
 \footnote{There could be another interface for the
   classifier, for example a predict method similar to the
   scikit-learn library.\cite{sklearn_api}}
-and returns an element from the label set when beeing
+and returns an element from the label set when being
 called (Algorithm~\ref{alg:pred}, line 9). The loss
 returned by $\gamma$ gets compared to the quality threshold
-$\tau_l$. Is the loss $\leq \tau_l$ the classifier is good
-enough and $\Theta$ is transformed to an active Leaf
-(Algorithm~\ref{alg:fit}, lines 2, 3).
+$\tau_l$. Is the loss $\leq \tau_l$ the classifier returned
+by $\gamma$ is considered good enough and $\Theta$ is
+transformed into an active Leaf (Algorithm~\ref{alg:fit},
+lines 2, 3).
 
-There are two other thresholds besides $\tau_l$,
-$\tau_{|X|}$, $\tau_h$. Both regulate the behaviour of a
+There are two other thresholds besides $\tau_l$:
+$\tau_{|X|}$ and $\tau_h$. Both regulate the behavior of a
 Tree's growth. $\tau_{|X|}$ defines a minimum amount of
-observations a Leaf must contain. One can easily imagine,
-without $\tau_{|X|}$ or $\tau_{|X|} = 0$ a Tree would
-never stop growing, since FIT would continue to split empty
-partitions, trying to find a smaller partition which would
-be predictable, even though no classifier could be
-generated without observations to train it on.
+observations a Leaf must contain. Without $\tau_{|X|}$ or
+$\tau_{|X|} = 0$ a Tree would never stop growing, since FIT
+would continue to split empty partitions trying to find a
+smaller partition which could be predictable, even though
+no classifier can be generated without observations to
+train it on.
 
 $\tau_h$ further regulates the maximum path length of a
-Tree. It is necessary besides $\tau_{|X|}$, because of the
-following scenario: be $\tau_{|X|} = 2$ and there are two
-equal observations in the dataset, but both having a
-different label than the other one. Now $\gamma$, passed
-$X$ containing only those two identical observations,
-returns a classifier with a loss $> \tau_l$. Since $|X|$ is
-still not smaller than $\tau_{|X|}$ FIT would continue
-trying to separate the two inseperable observations. To
-prevent such a szenario $\tau_h$ tells FIT to stop before
-the Tree's height, the amount of edges of the longest path,
-would exceed $\tau_h$. The path length of the Tree's root
-to $\Theta$ is passed as a parameter $h$ to FIT.
+Tree. It is necessary besides $\tau_{|X|}$: be
+$\tau_{|X|} = 2$ and there are two equal observations in
+the dataset, both having a different label than the other
+one. $\gamma$ --- passed $X$ containing only those two
+identical observations --- returns a classifier with a
+loss $> \tau_l$. Since $|X|$ is still not smaller than
+$\tau_{|X|}$ FIT would continue trying to separate the two
+inseparable observations. To prevent such a scenario
+$\tau_h$ regulates FIT to stop before the Tree's height
+--- the amount of edges of the longest path --- would
+exceed $\tau_h$. The path length of the Tree's root to
+$\Theta$ is passed as a parameter $h$ to FIT. $\tau_h$ also
+provides a way to further regulate the time complexity of
+FIT and PREDICT.
 
-Now, if neither $\tau_l$ is exceeded nor $\tau_{|X|}$ or
-$\tau_h$ is violated, FIT performs a split and transforms
-$\Theta$ to a Node (Algorithm~\ref{alg:fit}, lines 7ff).
-The dimension the split is performed on is chosen in a
-cyclic manner, a practise also applied to k-d trees
-(Algorithm~\ref{alg:fit}, line 7).%
+FIT performs a split and transforms $\Theta$ to a Node
+(Algorithm~\ref{alg:fit}, lines 7ff), if neither the
+classifier's loss matches $\tau_l$ nor $\tau{|X|}$ or
+$\tau_h$ is violated. The dimension the split is performed
+on is chosen in a cyclic manner, a practice also applied to
+k-d trees (Algorithm~\ref{alg:fit}, line 7).%
 ~\cite{Brown2015kdtree}
-But rather than chosing the splitting value at the median
-of the observations in the dimension, which is done in
-order to construct balanced k-d trees, the splitting value
-is random.\cite{Brown2015kdtree}
+But rather than choosing the splitting value at the median
+of the observations in the dimension --- done in order to
+construct balanced k-d trees --- the splitting value
+is determined randomly.\cite{Brown2015kdtree}
 
 In order to chose a proper splitting value $\beta_X$ is
 passed as another parameter to FIT. $\beta_X$ represents
-the boundries for every dimension of the feature space
+the boundaries for every dimension of the feature space
 based on $X$. For each dimension $\beta_X$ contains a
 tuple with the minimum and maximum value in the dimension
 of all observations in $X$.
 
 $\beta_X[\text{dimension}]$ is passed to a pseudo-random
-number generator\footnote{The implementation uses Python
-3.6's random library.\cite[chapter 9.6]{python}} generating
-a random value so that $lower(\beta_X[\text{dimension}])
-\leq \text{random number} \leq upper(\beta_X[
-\text{dimension}])$ (Algorithm~\ref{alg:fit}, line 8).
+number generator\footnote{The implementation used in
+  Section~\ref{sec:application} utilizes Python 3.6's
+  random library.\cite[chapter 9.6]{python}}
+generating a random value so that
+$lower(\beta_X[\text{dimension}]) \leq \text{random number}
+\leq upper(\beta_X[\text{dimension}])$
+(Algorithm~\ref{alg:fit}, line 8).
 
-Afterwards $X$, $y$, $\beta_X$ are splitted into two new
-disjoint partitions and FIT is recursively applied to the
-two new partitions (Algorithm~\ref{alg:fit}, lines 10ff).
+Afterwards $X$, $y$, $\beta_X$ are split into two new
+disjoint partitions and FIT is recursively applied to both
+(Algorithm~\ref{alg:fit}, lines 10ff).
 
 Since $\tau_h$ is defined, the maximum amount of nodes a
-Tree can have is $2^{\tau_h + 1} - 1$ if the Tree would be
-perfectly balanced. \cite[chapter 16.1]{Teschl} For each
+Tree can have is $2^{\tau_h + 1} - 1$, if the Tree is
+perfectly balanced.\cite[chapter 16.1]{Teschl} For each
 node FIT is called, so building a Tree has a worst case
-time complexity of $\mathcal{O}((2^{\tau_h + 1} -1)*
-\mathcal{O}(\text{FIT}))$. $\mathcal{O}(\text{FIT})$ is
-determined by the size of $X$, since $X$ has to be splitted
+time complexity of:
+\begin{align}
+  \mathcal{O}((2^{\tau_h + 1} -1)*\mathcal{O}(\text{FIT})).
+\end{align}
+$\mathcal{O}(\text{FIT})$ is determined by the size of $X$
+--- since $X$ has to be iterated in order to split it ---
 and by $\mathcal{O}(\gamma)$. That said, a single FIT
-operation would have a worst case time complexity of
-$\mathcal{O}(|X| + \mathcal{O}(\gamma))$, which would mean
-the time complexity of the whole fitting process would be
-$\mathcal{O}((2^{\tau_h + 1} - 1) * (|X| + \mathcal{O}
-(\gamma)))$.
+operation would have a worst case time complexity of:
+\begin{align}
+  \mathcal{O}(|X| + \mathcal{O}(\gamma)),
+\end{align} which means the time complexity of the whole
+fitting process is:
+\begin{align}
+  \mathcal{O}((2^{\tau_h + 1} - 1) *
+  (|X| + \mathcal{O}(\gamma)))
+\label{eq:O_fit}
+\end{align}
 
 % algorithm {{{
 \begin{algorithm}
@@ -105,7 +118,7 @@ $\mathcal{O}((2^{\tau_h + 1} - 1) * (|X| + \mathcal{O}
     $X$ &$-$ &input data,\\
     $y$ &$-$ &labels of X,\\
     $h$ &$-$ &height of the Tree; initially $h = 0$,\\
-    $\beta_X$ &$-$ &lower and upper boundries of every
+    $\beta_X$ &$-$ &lower and upper boundaries of every
       dimension of X,\\
     $\gamma$ &$-$ &function returning a classifier and its
       loss,\\
@@ -157,10 +170,10 @@ $\mathcal{O}((2^{\tau_h + 1} - 1) * (|X| + \mathcal{O}
     \caption{The structure of the Tree generated by FIT.}
     \label{fig:tree_example}
   \end{subfigure}
-  \caption{Example of FIT on a dataset seen in Figure
-    \ref{fig:scatter_example}. $\gamma$ simply computes the
-    probability of each label in $y$ and returns a
-    function returning the label with the
+  \caption{Example of FIT applied to the dataset seen in
+    Figure~\ref{fig:scatter_example}. $\gamma$ simply
+    computes the probability of each label in $y$ and
+    returns a function returning the label with the
     maximum probability and as loss 1 - the maximum
     probability. The thresholds are: $\tau_l = 1$,
     $\tau_{|X|} = 2$. $\tau_h$ can be any integer above
@@ -168,4 +181,3 @@ $\mathcal{O}((2^{\tau_h + 1} - 1) * (|X| + \mathcal{O}
   }
   \label{fig:fit_example}
 \end{figure*}
-
