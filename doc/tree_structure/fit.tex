@@ -37,13 +37,13 @@ $\tau_h$ further regulates the maximum path length of a
 Tree. It is necessary besides $\tau_{|X|}$: be
 $\tau_{|X|} = 2$ and there are two equal observations in
 the dataset, both having a different label than the other
-one. $\gamma$ --- passed $X$ containing only those two
-identical observations --- returns a classifier with a
+one. $\gamma$---passed $X$ containing only those two
+identical observations---returns a classifier with a
 loss $> \tau_l$. Since $|X|$ is still not smaller than
 $\tau_{|X|}$ FIT would continue trying to separate the two
 inseparable observations. To prevent such a scenario
-$\tau_h$ regulates FIT to stop before the Tree's height
---- the amount of edges of the longest path --- would
+$\tau_h$ regulates FIT to stop before the Tree's height%
+---the amount of edges of the longest path---would
 exceed $\tau_h$. The path length of the Tree's root to
 $\Theta$ is passed as a parameter $h$ to FIT. $\tau_h$ also
 provides a way to further regulate the time complexity of
@@ -57,8 +57,8 @@ on is chosen in a cyclic manner, a practice also applied to
 k-d trees (Algorithm~\ref{alg:fit}, line 7).%
 ~\cite{Brown2015kdtree}
 But rather than choosing the splitting value at the median
-of the observations in the dimension --- done in order to
-construct balanced k-d trees --- the splitting value
+of the observations in the dimension---done in order to
+construct balanced k-d trees---the splitting value
 is determined randomly.\cite{Brown2015kdtree}
 
 In order to chose a proper splitting value $\beta_X$ is
@@ -89,9 +89,9 @@ time complexity of:
 \begin{align}
   \mathcal{O}((2^{\tau_h + 1} -1)*\mathcal{O}(\text{FIT})).
 \end{align}
-$\mathcal{O}(\text{FIT})$ is determined by the size of $X$
---- since $X$ has to be iterated in order to split it ---
-and by $\mathcal{O}(\gamma)$. That said, a single FIT
+$\mathcal{O}(\text{FIT})$ is determined by the size of $X$%
+---since $X$ has to be iterated in order to split it---and
+by $\mathcal{O}(\gamma)$. That said, a single FIT
 operation would have a worst case time complexity of:
 \begin{align}
   \mathcal{O}(|X| + \mathcal{O}(\gamma)),
